@@ -1,0 +1,12 @@
+
+.DS_Store
+*.json
+*.pyc
+*.im4p
+*.img4
+*.shsh
+*.shsh2
+*.patched
+*.raw
+*.pwn
+.irecovery
