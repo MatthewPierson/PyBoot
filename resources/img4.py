@@ -77,10 +77,15 @@ def patchFiles(iOSVersion):
                 print("Devicetree patching failed!")
                 exit(2)
 def downloadImages(ipswURL, filepath, savepath):
-    cmd = f"./resources/bin/pzb download {ipswURL} {filepath} {savepath}"
-    so = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
-    download = so.stdout.read()
-    return
+    try:
+
+        cmd = f"./resources/bin/pzb download {ipswURL} {filepath} {savepath}"
+        so = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
+        download = so.stdout.read()
+        return
+    except:
+        print(f"Failed to download {filepath} from {ipswURL}. Most likely access denied from Apple")
+        exit(2)
 def sendImages(iosVersion, useCustomLogo):
     print("Sending boot files to the device and booting")
     os.chdir("resources")
@@ -96,20 +101,16 @@ def sendImages(iosVersion, useCustomLogo):
 
     cmd = 'bin/irecovery -c "bootx"' # Testing if running bootx after ibss/ibec will fix devicetree issues
     so = subprocess.Popen(cmd, shell=True)
-    time.sleep(2)
 
     if useCustomLogo:
         cmd = f"bin/irecovery -f bootlogo.img4"
         so = subprocess.Popen(cmd, shell=True)
-        time.sleep(2)
         
         cmd = 'bin/irecovery -c "setpicture 0"'
         so = subprocess.Popen(cmd, shell=True)
-        time.sleep(2)
 
         cmd = 'bin/irecovery -c "bgcolor 0 0 0"'
         so = subprocess.Popen(cmd, shell=True)
-        time.sleep(2)
 
     cmd = "bin/irecovery -f devicetree.img4"
     so = subprocess.Popen(cmd, shell=True)
@@ -148,7 +149,7 @@ def img4stuff(deviceModel, iOSVersion, useCustomLogo, bootlogoPath):
     'iPhone9,2': '12.3.1',
     'iPhone9,3': '12.3.1',
     'iPhone9,4': '12.3.1',
-    'iPhone10,3': '12.4',
+    'iPhone10,3': '12.3.1',
     'iPhone10,6': '12.4',
     'iPod7,1': '12.3.1',
     'iPad7,5': '12.3.1',
@@ -157,6 +158,20 @@ def img4stuff(deviceModel, iOSVersion, useCustomLogo, bootlogoPath):
     'iPhone6,1': iOSVersion,
     'iPhone7,2': iOSVersion,
     'iPhone7,1': iOSVersion # This device has NO keys for 11.x/12.x but i'll keep it here for when it does
+    }
+    screenSize = {
+    'iPhone8,1': '1334x750',
+    'iPhone8,2': '1920x1080',
+    'iPhone9,1': '1334x750',
+    'iPhone9,2': '1920x1080',
+    'iPhone9,3': '1334x750',
+    'iPhone9,4': '1920x1080',
+    'iPhone10,3': '2436x1125',
+    'iPhone10,6': '2436x1125',
+    'iPhone6,2': '1136x640',
+    'iPhone6,1': '1136x640',
+    'iPhone7,2': '1334x750',
+    'iPhone7,1': '1920x1080',
     }
     try:
         iosBootChainVersion = bootchainVariants[deviceModel] # Have to use a 12.x iBSS/iBEC for now since iBoot64Patcher can't patch 13.x stuff yet
