@@ -19,6 +19,8 @@ If you wish to donate to me, feel free to do so, but donations are in no way req
 
 ## Current device/iOS support
 
+iOS support is detirmened by what SEP you currently have installed. For example, if you have iOS 12.3 installed (not futurerestored) with 12.3's SEP, then you can downgrade to any iOS version that 12.3's SEP is compatible with. The list below is based off the latest SEP (13.3.1/12.4.5) but you might be able to downgrade to other versions.
+
 - iPhone 5s - 11.3 -> 12.4.5
 - iPhone 6/6+ - 11.3 -> 12.4.5
 - iPhone 6s/6s+ - 13.0 -> 13.3.1
