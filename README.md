@@ -3,6 +3,8 @@ Script for tether booting Checkm8 vulnerable iOS devices by Matty [(moski)](http
 
 ## DISCLAIMER
 
+MACOS ONLY - Don't ask for Windows support
+
 Don't use this on a main device, expect issues, bugs and other problems that will make this a bad experience. In saying that, it should work without any major issues, but I'd rather have this disclaimer so I have an excuse to ignore wen eta kids.
 
 ## What is PyBoot?
