@@ -40,7 +40,8 @@ E.G "./pyboot -i iPhone8,1 13.2.3 -b ~/Downloads/bootlogo.png"
 Options:
 
   -i, --ios DEVICE IOS		Device model and downgraded iOS version to boot
-  -p, --pwn		Enter PWNDFU mode, which will also apply sig patches
+  -b, --bootlogo LOGO 		Path to .PNG to use as boot logo
+  -p, --pwn		        Enter PWNDFU mode, which will also apply sig patches
   -c, --credits			Show credits
   -v, --version			List the version of PyBoot
 
