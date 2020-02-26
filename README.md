@@ -1,5 +1,5 @@
 # PyBoot
-Script for tether booting Checkm8 vulnerable iOS devices
+Script for tether booting Checkm8 vulnerable iOS devices by Matty [(moski)](https://twitter.com/mosk_i)
 
 ## DISCLAIMER
 
@@ -58,6 +58,14 @@ Options:
 5. Run PyBoot whenever you want to boot the device
 6. Enjoy! 
 
+## Upcoming Features
+
+- Custom bootargs
+
+- Ability to use a local IPSW instead of downloading the required files
+
+- More super secret stuff =)
+
 ## Known Issues
 
 - Very high storage usage after downgrading. Can be partially mitigated with a "Reset content and settings" (mobile_obliterator is called after the downgrade by successiondown but sometimes it doesn't run)
@@ -66,13 +74,23 @@ Options:
 
 - Jailbreak's don't work after downgrading. No current method to jailbreak devices downgraded by this method. Checkra1n will give OTA error when installing Cyida (Might be possible to fix) and Unc0ver fails when attempting to find kernel offsets (Probably can't fix)
 
+- Some iOS versions won't boot due to SEP incompatibilities. I have this partially mitigated by including a check for whether SEP is compatible or not, but obviously this is bypassable. 
+
 ## Credits
 
 Me - For writing this whole thing :)
+
 Thimstar - [img4tool](https://github.com/tihmstar/img4tool), [iBoot64Patcher](https://github.com/tihmstar/iBoot64Patcher), [tsschecker](https://github.com/tihmstar/tsschecker)
+
 realnp - [ibootim](https://github.com/realnp/ibootim)
+
 axi0mX - [ipwndfu/checkm8](https://github.com/axi0mX/ipwndfu)
+
 Marco Grassi - [PartialZip](https://github.com/marcograss/partialzip)
+
 Merculous - [ios-python-tools](https://github.com/Merculous/ios-python-tools) (iphonewiki.py for keys)
+
 0x7ff - [Eclipsa](https://github.com/0x7ff/eclipsa)
+
 libimobiledevice team - [irecovery](https://github.com/libimobiledevice/libirecovery)
+
