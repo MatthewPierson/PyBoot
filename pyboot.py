@@ -5,7 +5,6 @@ import sys
 import argparse
 import platform
 import subprocess
-import requests
 import re
 import shutil
 import time
