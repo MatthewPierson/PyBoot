@@ -13,7 +13,7 @@ PyBoot is a simple alternative to ra1nsn0w for tether booting Checkm8 vulnerable
 
 PyBoot is most likely extremely broken, expect issues and bugs. I just made this for fun, and to have an alternative to ra1nsn0w for booting tethered downgraded devices with SuccessionDown (my Succession fork for tethered downgrades on-device).
 
-How do I tether downgrade my device you might be asking? Simply add my repo (matthewpiersion.github.io) to Cydia/Zebra/Sileo and install "SuccessionDown" =)
+How do I tether downgrade my device you might be asking? Simply add my repo (matthewpierson.github.io) to Cydia/Zebra/Sileo and install "SuccessionDown" =)
 
 Feel free to create a pull request if you want to help improve this, or create an issue if you find one!
 
