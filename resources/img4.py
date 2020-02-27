@@ -4,6 +4,7 @@ import sys
 import re
 import shutil
 import time
+import requests
 from resources.iospythontools import iphonewiki, ipswapi
 from pyboot import *
 from subprocess import check_output
@@ -196,14 +197,11 @@ def img4stuff(deviceModel, iOSVersion, useCustomLogo, bootlogoPath):
     if iBECIV == "Unknown": # Just making sure that there is keys, some key pages have keys for one model but not the other which could cause issues
         print("Keys for the other device model are present but not for yours sorry\nFeel free to get them and add them to theiphonewiki =)")
         exit(2)
-    so = subprocess.Popen(f"/usr/bin/curl https://api.ipsw.me/v2.1/{deviceModel}/{iOSVersion}/url", stdout=subprocess.PIPE, shell=True)
-    output = so.stdout.read()
-    ipswurl = str(output)[2:-1] # Have to cut b' from the start and ' from the end of the string
 
-    so = subprocess.Popen(f"/usr/bin/curl https://api.ipsw.me/v2.1/{deviceModel}/{iosBootChainVersion}/url", stdout=subprocess.PIPE, shell=True)
-    output = so.stdout.read()
-    iburl = str(output)[2:-1] # Have to cut b' from the start and ' from the end of the string
-     #geting shsh
+    ipswurl = requests.get(f"https://api.ipsw.me/v2.1/{deviceModel}/{iOSVersion}/url").text
+    iburl = requests.get(f"https://api.ipsw.me/v2.1/{deviceModel}/{iosBootChainVersion}/url").text
+
+    # geting shsh
     print("Getting SHSH for signing images")
     so = subprocess.Popen(f"./resources/bin/tsschecker -d iPhone6,2 -e 12326262 -l -s", stdout=subprocess.PIPE, shell=True)
     getshsh = so.stdout.read()
