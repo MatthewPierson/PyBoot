@@ -101,16 +101,20 @@ def sendImages(iosVersion, useCustomLogo):
 
     cmd = 'bin/irecovery -c "bootx"' # Testing if running bootx after ibss/ibec will fix devicetree issues
     so = subprocess.Popen(cmd, shell=True)
+    time.sleep(2)
 
     if useCustomLogo:
         cmd = f"bin/irecovery -f bootlogo.img4"
         so = subprocess.Popen(cmd, shell=True)
+        time.sleep(2)
         
         cmd = 'bin/irecovery -c "setpicture 0"'
         so = subprocess.Popen(cmd, shell=True)
+        time.sleep(2)
 
         cmd = 'bin/irecovery -c "bgcolor 0 0 0"'
         so = subprocess.Popen(cmd, shell=True)
+        time.sleep(2)
 
     cmd = "bin/irecovery -f devicetree.img4"
     so = subprocess.Popen(cmd, shell=True)
