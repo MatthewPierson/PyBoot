@@ -17,7 +17,7 @@ How do I tether downgrade my device you might be asking? Simply add my repo (mat
 
 Feel free to create a pull request if you want to help improve this, or create an issue if you find one!
 
-If you wish to donate to me, feel free to do so, but donations are in no way requiered or expected. My paypal account is matthewpierson01@gmail.com (I can't create a paypal.me link in New Zealand sadly, so you'd need to send donations manually). I make these things for fun and to be useful to the jailbreak community, not for profit, but money is still nice =)
+If you wish to donate to me, feel free to do so, but donations are in no way required or expected. My paypal account is matthewpierson01@gmail.com (I can't create a paypal.me link in New Zealand sadly, so you'd need to send donations manually). I make these things for fun and to be useful to the jailbreak community, not for profit, but money is still nice =)
 
 ## Current device/iOS support
 
@@ -33,7 +33,7 @@ iOS support is detirmened by what SEP you currently have installed. For example,
 
 All iPads and iPods are untested, but they should work fine with the corresponding iPhone CPU. Please try and let me know if they work or not.
 
-Currently iPhone X support is broken (kernel panicing 30~ seconds after booting). Keep in mind that even after X support is added, Face-ID will be broken no matter what version you go to (with minor execptions). Touch-ID works fine on all supported versions.
+Currently iPhone X support is broken (kernel panicking 30~ seconds after booting). Keep in mind that even after X support is added, Face-ID will be broken no matter what version you go to (with minor exceptions). Touch-ID works fine on all supported versions.
 
 ## Usage
 ```
@@ -54,7 +54,7 @@ Options:
 ## Instructions
 
 1. cd into the PyBoot directory
-2. Run pip3 install -r requierments.txt
+2. Run pip3 install -r requirements.txt
 3. Connect your device in DFU mode to your computer
 4. Run PyBoot with your desiered options - E.G './pyboot -i iPhone8,1 13.1.1 -b ~/Downloads/customBootLogo.png'
 5. Run PyBoot whenever you want to boot the device
@@ -74,7 +74,7 @@ Options:
 
 - Some IPSW's won't download from Apple's servers. Can be avoided by either picking a different iOS version or by providing a rootfs dmg in the correct folder
 
-- Jailbreak's don't work after downgrading. No current method to jailbreak devices downgraded by this method. Checkra1n will give OTA error when installing Cyida (Might be possible to fix) and Unc0ver fails when attempting to find kernel offsets (Probably can't fix)
+- Jailbreak's don't work after downgrading. No current method to jailbreak devices downgraded by this method. Checkra1n will give OTA error when installing Cydia (Might be possible to fix) and Unc0ver fails when attempting to find kernel offsets (Probably can't fix)
 
 - Some iOS versions won't boot due to SEP incompatibilities. I have this partially mitigated by including a check for whether SEP is compatible or not, but obviously this is bypassable. 
 
