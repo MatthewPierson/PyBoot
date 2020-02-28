@@ -155,6 +155,7 @@ def img4stuff(deviceModel, iOSVersion, useCustomLogo, bootlogoPath):
     'iPhone9,3': '12.3.1',
     'iPhone9,4': '12.3.1',
     'iPhone10,3': '12.3.1',
+    'iPhone10,4': '12.3.1', #narcyzzo adding this experimentally
     'iPhone10,6': '12.4',
     'iPod7,1': '12.3.1',
     'iPad7,5': '12.3.1',
@@ -172,6 +173,7 @@ def img4stuff(deviceModel, iOSVersion, useCustomLogo, bootlogoPath):
     'iPhone9,3': '1334x750',
     'iPhone9,4': '1920x1080',
     'iPhone10,3': '2436x1125',
+    'iPhone10,4': '1334x750', #narcyzzo adding this experimentally
     'iPhone10,6': '2436x1125',
     'iPhone6,2': '1136x640',
     'iPhone6,1': '1136x640',
