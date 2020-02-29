@@ -73,7 +73,7 @@ removeFiles = [
 if __name__ == "__main__":
     argv = sys.argv
 
-    text = 'PyBoot - A tool for tether booting Checkm8 vulnerable iOS devices by Matty, @mosk_i.'
+    text = 'PyBoot - A tool for tether booting Checkm8 vulnerable iOS devices by Matty, @mosk_i edited by @narcyzz0.'
     parser = argparse.ArgumentParser(description = text, usage=f"pyboot -i 'iOS version'\n\nE.G './pyboot -i 13.2.3 -b ~/Downloads/bootlogo.png'\n\nCurrent PyBoot version is: {tool_version}")
     parser.add_argument("-i", "--ios", help="iOS version you wish to boot", nargs=2, metavar=('DEVICE', 'iOS'))
     parser.add_argument("-b", "--bootlogo", help="Path to .PNG you wish to use as a custom Boot Logo (Must be a .png file with the correct resolution/aspect ratio)", nargs=1, metavar=("LOGO"))
@@ -157,7 +157,7 @@ if __name__ == "__main__":
         for item in removeFiles:
             if os.path.isfile(item):
                 os.remove(item)
-        print('\033[95m' + "PyBoot - A tool for tether booting Checkm8 vulnerable iOS devices by Matty, @mosk_i\n" + '\033[0m')
+        print('\033[95m' + "PyBoot - A tool for tether booting Checkm8 vulnerable iOS devices by Matty, @mosk_i edited by @narcyzz0\n" + '\033[0m')
         print("Current version is: " + tool_version)
 
         if "10." in argv[3]:
