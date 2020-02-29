@@ -45,9 +45,9 @@ Options:
 
   -i, --ios DEVICE IOS		Device model and downgraded iOS version to boot
   -b, --bootlogo LOGO 		Path to .PNG to use as boot logo
-  -p, --pwn		        Enter PWNDFU mode, which will also apply sig patches
-  -c, --credits			Show credits
-  -v, --version			List the version of PyBoot
+  -p, --pwn		            Enter PWNDFU mode, which will also apply sig patches
+  -c, --credits			      Show credits
+  -v, --version			      List the version of PyBoot
 
 ```
 
@@ -70,13 +70,19 @@ Options:
 
 ## Known Issues
 
-- Very high storage usage after downgrading. Can be partially mitigated with a "Reset content and settings" (mobile_obliterator is called after the downgrade by successiondown but sometimes it doesn't run)
+- Very high storage usage after downgrading. Can be partially mitigated with a "Reset content and settings" (mobile_obliterator is called after the downgrade by successiondown but sometimes it doesn't run) You could also try [this](https://github.com/MatthewPierson/PyBoot/issues/2) but I haven't tested this so you'd be on your own.
 
 - Some IPSW's won't download from Apple's servers. Can be avoided by either picking a different iOS version or by providing a rootfs dmg in the correct folder
 
-- Jailbreak's don't work after downgrading. No current method to jailbreak devices downgraded by this method. Checkra1n will give OTA error when installing Cydia (Might be possible to fix) and Unc0ver fails when attempting to find kernel offsets (Probably can't fix)
+- ~~Jailbreak's don't work after downgrading. No current method to jailbreak devices downgraded by this method. Checkra1n will give OTA error when installing Cydia (Might be possible to fix) and Unc0ver fails when attempting to find kernel offsets (Probably can't fix)~~ Unc0ver 4.1.0 and higher should work fine for jailbreaking 13.x - 13.3, you still can't use Checkra1n however as that will cause broken WiFi on boot, plus other issues. Electra does work for jailbreaking 11.x, but has some issues that you can fix by following [this tweet from coolstar](https://twitter.com/CStar_OW/status/1233241107661615108) after jailbreaking. 12.x jailbreaks are untested, will edit README with info later.
 
 - Some iOS versions won't boot due to SEP incompatibilities. I have this partially mitigated by including a check for whether SEP is compatible or not, but obviously this is bypassable. 
+
+## Help PyBoot is giving me errors!
+
+- First make sure you have ran "pip3 install -r requirements.txt" before doing anything
+
+- If you are getting irecovery related errors, download [this bash script](https://gist.github.com/MatthewPierson/3838e6192120f27b195b2f284f5737c6) and run it 
 
 ## Credits
 
