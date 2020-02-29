@@ -58,7 +58,8 @@ Options:
 3. Connect your device in DFU mode to your computer
 4. Run PyBoot with your desiered options - E.G './pyboot -i iPhone8,1 13.1.1 -b ~/Downloads/customBootLogo.png'
 5. Run PyBoot whenever you want to boot the device
-6. Enjoy! 
+6. If your device not booting or stuck in recovery mode try to boot thetered with checkra1n in cli mode "checkra1n -c -V -v"
+7. Enjoy! 
 
 ## Upcoming Features
 
