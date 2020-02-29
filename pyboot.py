@@ -183,7 +183,7 @@ if __name__ == "__main__":
         for item in removeFiles:
             if os.path.isfile(item):
                 os.remove(item)
-        print("Device should be booting!")
+         print("Device should be booting! IF NOT TRY TO TETHER BOOT WITH CHECKRA1N < checkra1n -c -V -v > ")
         exit(2)
 
     elif args.version:
