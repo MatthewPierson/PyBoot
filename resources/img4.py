@@ -160,10 +160,6 @@ def img4stuff(deviceModel, iOSVersion, useCustomLogo, bootlogoPath):
         'iPod7,1': '12.3.1',
         'iPad7,5': '12.3.1',
         'iPad7,6': '12.3.1',
-        'iPhone6,2': iOSVersion,  # Since these have all keys up, we can just use whatever the downgraded version is =)
-        'iPhone6,1': iOSVersion,
-        'iPhone7,2': iOSVersion,
-        'iPhone7,1': iOSVersion  # This device has NO keys for 11.x/12.x but i'll keep it here for when it does
     }
     screenSize = {
         'iPhone8,1': '1334x750',
@@ -182,8 +178,7 @@ def img4stuff(deviceModel, iOSVersion, useCustomLogo, bootlogoPath):
     try:
         iosBootChainVersion = bootchainVariants[deviceModel]  # Have to use a 12.x iBSS/iBEC for now since iBoot64Patcher can't patch 13.x stuff yet
     except:
-        print("Sorry your device has no 12.x or lower keys meaning tether booting isn't possible\nThat or I forgot to add your device to the list, please let me know if thats the case!")
-        exit(2)
+        iosBootChainVersion = iOSVersion
     print(f"Checking theiphonewiki for {iosBootChainVersion} keys...")
     wiki = iphonewiki.iPhoneWiki(deviceModel, iosBootChainVersion)
     keys = wiki.getWikiKeys()
@@ -200,7 +195,6 @@ def img4stuff(deviceModel, iOSVersion, useCustomLogo, bootlogoPath):
         exit(2)
 
     ipswurl = api.printURLForArchive()
-    #iburl = requests.get(f"https://api.ipsw.me/v2.1/{deviceModel}/{iosBootChainVersion}/url").text
 
     # geting shsh
     print("Getting SHSH for signing images")
@@ -220,9 +214,18 @@ def img4stuff(deviceModel, iOSVersion, useCustomLogo, bootlogoPath):
     print(f"Downloading and patching {iosBootChainVersion}'s iBSS/iBEC")
 
     # get ibss and ibec
-    api.downloadFileFromArchive(f"Firmware/dfu/{iBECName}", "resources/ibec.im4p")
+    if deviceModel in bootchainVariants:
 
-    api.downloadFileFromArchive(f"Firmware/dfu/{iBSSName}", "resources/ibss.im4p")
+        iburl = requests.get(f"https://api.ipsw.me/v2.1/{deviceModel}/{iosBootChainVersion}/url").text
+        so = subprocess.run(["./resources/bin/pzb", "download", f"{iburl}", f"Firmware/dfu/{iBECName}", "resources/ibec.im4p"])
+        so.check_returncode()
+        so1 = subprocess.run(["./resources/bin/pzb", "download", f"{iburl}", f"Firmware/dfu/{iBSSName}", "resources/ibss.im4p"])
+        so1.check_returncode()
+    else:
+
+        api.downloadFileFromArchive(f"Firmware/dfu/{iBECName}", "resources/ibec.im4p")
+
+        api.downloadFileFromArchive(f"Firmware/dfu/{iBSSName}", "resources/ibss.im4p")
 
     # Assuming that worked (add checks) we now need to decrpyt and patch iBSS/iBEC for booting
     so = subprocess.Popen(f"./resources/bin/img4tool -e -o resources/ibss.raw --iv {iBSSIV} --key {iBSSKey} resources/ibss.im4p", stdout=subprocess.PIPE, shell=True)
