@@ -1,13 +1,15 @@
 import os
-import subprocess
-import sys
 import re
 import shutil
+import subprocess
+import sys
 import time
-import requests
-from resources.iospythontools import iphonewiki, ipswapi
-from pyboot import *
 from subprocess import check_output
+
+import requests
+
+from resources.iospythontools import iphonewiki, ipswapi
+
 try:
 
     from PIL import Image
@@ -15,6 +17,7 @@ try:
 except:
     print("Failed to import dependencies, please run 'pip3 install -r requirements.txt' then re-run PyBoot")
     exit(2)
+
 
 def signImages():
     print("Signing boot files")
@@ -27,16 +30,18 @@ def signImages():
 
     so = subprocess.Popen(f"./resources/bin/img4tool -c resources/trustcache.img4 -p resources/trustcache.im4p -s resources/shsh.shsh", stdout=subprocess.PIPE, shell=True)
     output = so.stdout.read()
+
+
 def patchFiles(iOSVersion):
-    if os.path.isfile("resources/kernel.im4p"): 
+    if os.path.isfile("resources/kernel.im4p"):
         print("Patching Kernel's type from krnl to rkrn")
         with open("resources/kernel.im4p", "r+b") as fh:
             file = fh.read()
             try:
-                offset = hex(file.index(b"\x6b\x72\x6e\x6c")) # getting offset for tag krnl tag, can be 1 or 2 bytes off depending on the kernel
+                offset = hex(file.index(b"\x6b\x72\x6e\x6c"))  # getting offset for tag krnl tag, can be 1 or 2 bytes off depending on the kernel
                 offset = int(offset, 16)
                 fh.seek(offset, 0)
-                fh.write(b"\x72\x6b\x72\x6e") # writing rkrn tag so we can boot =)
+                fh.write(b"\x72\x6b\x72\x6e")  # writing rkrn tag so we can boot =)
                 fh.close()
             except:
                 print("Kernel patching failed!")
@@ -53,10 +58,10 @@ def patchFiles(iOSVersion):
             with open("resources/trustcache.im4p", "r+b") as fh:
                 file = fh.read()
                 try:
-                    offset = hex(file.index(b"\x74\x72\x73\x74")) # getting offset for tag trst tag, can be 1 or 2 bytes off depending on the trustcache
+                    offset = hex(file.index(b"\x74\x72\x73\x74"))  # getting offset for tag trst tag, can be 1 or 2 bytes off depending on the trustcache
                     offset = int(offset, 16)
                     fh.seek(offset, 0)
-                    fh.write(b'\x72\x74\x73\x63') # writing rtsc tag so we can boot =)
+                    fh.write(b'\x72\x74\x73\x63')  # writing rtsc tag so we can boot =)
                     fh.close()
                 except:
                     print("Trustcache patching failed!")
@@ -69,7 +74,7 @@ def patchFiles(iOSVersion):
         with open("resources/devicetree.im4p", "r+b") as fh:
             file = fh.read()
             try:
-                offset = hex(file.index(b"\x64\x74\x72\x65")) # getting offset for tag dtre tag, can be 1 or 2 bytes off depending on the devicetree
+                offset = hex(file.index(b"\x64\x74\x72\x65"))  # getting offset for tag dtre tag, can be 1 or 2 bytes off depending on the devicetree
                 offset = int(offset, 16)
                 fh.seek(offset, 0)
                 fh.write(b'\x72\x64\x74\x72')  # writing rdtr tag so we can boot =)
@@ -77,16 +82,8 @@ def patchFiles(iOSVersion):
             except:
                 print("Devicetree patching failed!")
                 exit(2)
-def downloadImages(ipswURL, filepath, savepath):
-    try:
 
-        cmd = f"./resources/bin/pzb download {ipswURL} {filepath} {savepath}"
-        so = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
-        download = so.stdout.read()
-        return
-    except:
-        print(f"Failed to download {filepath} from {ipswURL}. Most likely access denied from Apple")
-        exit(2)
+
 def sendImages(iosVersion, useCustomLogo):
     print("Sending boot files to the device and booting")
     os.chdir("resources")
@@ -100,7 +97,7 @@ def sendImages(iosVersion, useCustomLogo):
     so = subprocess.Popen(cmd, shell=True)
     time.sleep(2)
 
-    cmd = 'bin/irecovery -c "bootx"' # Testing if running bootx after ibss/ibec will fix devicetree issues
+    cmd = 'bin/irecovery -c "bootx"'  # Testing if running bootx after ibss/ibec will fix devicetree issues
     so = subprocess.Popen(cmd, shell=True)
     time.sleep(2)
 
@@ -108,7 +105,7 @@ def sendImages(iosVersion, useCustomLogo):
         cmd = f"bin/irecovery -f bootlogo.img4"
         so = subprocess.Popen(cmd, shell=True)
         time.sleep(2)
-        
+
         cmd = 'bin/irecovery -c "setpicture 0"'
         so = subprocess.Popen(cmd, shell=True)
         time.sleep(2)
@@ -123,10 +120,10 @@ def sendImages(iosVersion, useCustomLogo):
 
     cmd = 'bin/irecovery -c "devicetree"'
     so = subprocess.Popen(cmd, shell=True)
-    print(so) # For some weird reason, devicetree won't execute properly unless I print this?????? If I don't then I have to send devicetree/trustcache/kernel again after bootx fails
+    print(so)  # For some weird reason, devicetree won't execute properly unless I print this?????? If I don't then I have to send devicetree/trustcache/kernel again after bootx fails
     time.sleep(2)
 
-    if not '11.' in iosVersion: # 11.x and lower don't need trustcache sent to boot =)
+    if not '11.' in iosVersion:  # 11.x and lower don't need trustcache sent to boot =)
 
         cmd = "bin/irecovery -f trustcache.img4"
         so = subprocess.Popen(cmd, shell=True)
@@ -146,46 +143,50 @@ def sendImages(iosVersion, useCustomLogo):
 
     print("Should be good?")
     os.chdir("../")
+
+
 def img4stuff(deviceModel, iOSVersion, useCustomLogo, bootlogoPath):
-    bootchainVariants = { # iBoot64Patcher doesn't work for iOS 13 iBSS/iBEC so we have to get 12.x iBSS/iBEC to use for booting, but still grab kernel/trustcache (If needed)/devicetree for downgraded iOS version
-    'iPhone8,1': '12.4',
-    'iPhone8,2': '13.1.3', # This device has NO keys for 11.x/12.x but i'll keep it here for when it does
-    'iPhone9,1': '12.4',
-    'iPhone9,2': '12.3.1',
-    'iPhone9,3': '12.3.1',
-    'iPhone9,4': '12.3.1',
-    'iPhone10,3': '12.3.1',
-    'iPhone10,6': '12.4',
-    'iPod7,1': '12.3.1',
-    'iPad7,5': '12.3.1',
-    'iPad7,6': '12.3.1',
-    'iPhone6,2': iOSVersion, # Since these have all keys up, we can just use whatever the downgraded version is =)
-    'iPhone6,1': iOSVersion,
-    'iPhone7,2': iOSVersion,
-    'iPhone7,1': iOSVersion # This device has NO keys for 11.x/12.x but i'll keep it here for when it does
+    api = ipswapi.APIParser(deviceModel, iOSVersion)
+
+    bootchainVariants = {  # iBoot64Patcher doesn't work for iOS 13 iBSS/iBEC so we have to get 12.x iBSS/iBEC to use for booting, but still grab kernel/trustcache (If needed)/devicetree for downgraded iOS version
+        'iPhone8,1': '12.4',
+        'iPhone8,2': '13.1.3',  # This device has NO keys for 11.x/12.x but i'll keep it here for when it does
+        'iPhone9,1': '12.4',
+        'iPhone9,2': '12.3.1',
+        'iPhone9,3': '12.3.1',
+        'iPhone9,4': '12.3.1',
+        'iPhone10,3': '12.3.1',
+        'iPhone10,6': '12.4',
+        'iPod7,1': '12.3.1',
+        'iPad7,5': '12.3.1',
+        'iPad7,6': '12.3.1',
+        'iPhone6,2': iOSVersion,  # Since these have all keys up, we can just use whatever the downgraded version is =)
+        'iPhone6,1': iOSVersion,
+        'iPhone7,2': iOSVersion,
+        'iPhone7,1': iOSVersion  # This device has NO keys for 11.x/12.x but i'll keep it here for when it does
     }
     screenSize = {
-    'iPhone8,1': '1334x750',
-    'iPhone8,2': '1920x1080',
-    'iPhone9,1': '1334x750',
-    'iPhone9,2': '1920x1080',
-    'iPhone9,3': '1334x750',
-    'iPhone9,4': '1920x1080',
-    'iPhone10,3': '2436x1125',
-    'iPhone10,6': '2436x1125',
-    'iPhone6,2': '1136x640',
-    'iPhone6,1': '1136x640',
-    'iPhone7,2': '1334x750',
-    'iPhone7,1': '1920x1080',
+        'iPhone8,1': '1334x750',
+        'iPhone8,2': '1920x1080',
+        'iPhone9,1': '1334x750',
+        'iPhone9,2': '1920x1080',
+        'iPhone9,3': '1334x750',
+        'iPhone9,4': '1920x1080',
+        'iPhone10,3': '2436x1125',
+        'iPhone10,6': '2436x1125',
+        'iPhone6,2': '1136x640',
+        'iPhone6,1': '1136x640',
+        'iPhone7,2': '1334x750',
+        'iPhone7,1': '1920x1080',
     }
     try:
-        iosBootChainVersion = bootchainVariants[deviceModel] # Have to use a 12.x iBSS/iBEC for now since iBoot64Patcher can't patch 13.x stuff yet
+        iosBootChainVersion = bootchainVariants[deviceModel]  # Have to use a 12.x iBSS/iBEC for now since iBoot64Patcher can't patch 13.x stuff yet
     except:
         print("Sorry your device has no 12.x or lower keys meaning tether booting isn't possible\nThat or I forgot to add your device to the list, please let me know if thats the case!")
         exit(2)
     print(f"Checking theiphonewiki for {iosBootChainVersion} keys...")
     wiki = iphonewiki.iPhoneWiki(deviceModel, iosBootChainVersion)
-    keys = wiki.getWikiKeys() 
+    keys = wiki.getWikiKeys()
 
     iBECName = keys["IBEC"]
     iBECKey = keys["IBECKEY"]
@@ -194,17 +195,17 @@ def img4stuff(deviceModel, iOSVersion, useCustomLogo, bootlogoPath):
     iBSSName = keys["IBSS"]
     iBSSKey = keys["IBSSKEY"]
     iBSSIV = keys["IBSSIV"]
-    if iBECIV == "Unknown": # Just making sure that there is keys, some key pages have keys for one model but not the other which could cause issues
+    if iBECIV == "Unknown":  # Just making sure that there is keys, some key pages have keys for one model but not the other which could cause issues
         print("Keys for the other device model are present but not for yours sorry\nFeel free to get them and add them to theiphonewiki =)")
         exit(2)
 
-    ipswurl = requests.get(f"https://api.ipsw.me/v2.1/{deviceModel}/{iOSVersion}/url").text
-    iburl = requests.get(f"https://api.ipsw.me/v2.1/{deviceModel}/{iosBootChainVersion}/url").text
+    ipswurl = api.printURLForArchive()
+    #iburl = requests.get(f"https://api.ipsw.me/v2.1/{deviceModel}/{iosBootChainVersion}/url").text
 
     # geting shsh
     print("Getting SHSH for signing images")
     so = subprocess.Popen(f"./resources/bin/tsschecker -d iPhone6,2 -e 12326262 -l -s", stdout=subprocess.PIPE, shell=True)
-    getshsh = so.stdout.read()
+    output = so.stdout.read()
     dir_name = os.getcwd()
     test = os.listdir(dir_name)
     for item in test:
@@ -217,10 +218,11 @@ def img4stuff(deviceModel, iOSVersion, useCustomLogo, bootlogoPath):
     else:
         sys.exit("ERROR: Failed to save shsh")
     print(f"Downloading and patching {iosBootChainVersion}'s iBSS/iBEC")
-    #pzb to get ibss and ibec
-    downloadImages(iburl, f"Firmware/dfu/{iBECName}", "resources/ibec.im4p")
 
-    downloadImages(iburl, f"Firmware/dfu/{iBSSName}", "resources/ibss.im4p")
+    # get ibss and ibec
+    api.downloadFileFromArchive(f"Firmware/dfu/{iBECName}", "resources/ibec.im4p")
+
+    api.downloadFileFromArchive(f"Firmware/dfu/{iBSSName}", "resources/ibss.im4p")
 
     # Assuming that worked (add checks) we now need to decrpyt and patch iBSS/iBEC for booting
     so = subprocess.Popen(f"./resources/bin/img4tool -e -o resources/ibss.raw --iv {iBSSIV} --key {iBSSKey} resources/ibss.im4p", stdout=subprocess.PIPE, shell=True)
@@ -252,7 +254,7 @@ def img4stuff(deviceModel, iOSVersion, useCustomLogo, bootlogoPath):
 
     so = subprocess.Popen(f"./resources/bin/img4tool -c resources/ibec.img4 -p resources/ibec.patched -s resources/shsh.shsh", stdout=subprocess.PIPE, shell=True)
     output = so.stdout.read()
-        
+
     if useCustomLogo:
         # Now need to convert the .PNG to a img4 format to use while booting
         # check png dimensions, make sure its the proper size even though we won't stop if its not
@@ -263,14 +265,14 @@ def img4stuff(deviceModel, iOSVersion, useCustomLogo, bootlogoPath):
             print("Image is correct size and format")
         else:
             print(f"Image is {check} but screen is {screenSize[deviceModel]}.\nContinuing anyway, although image may look strange on the device")
-        # Now run ibootim 
+        # Now run ibootim
         if str(bootlogoPath).lower().endswith(".png"):
-            so = subprocess.Popen(f"./resources/bin/ibootim {bootlogoPath} resources/bootlogo.ibootim", stdout=subprocess.PIPE, shell=True) # Thanks to realnp for ibootim!
+            so = subprocess.Popen(f"./resources/bin/ibootim {bootlogoPath} resources/bootlogo.ibootim", stdout=subprocess.PIPE, shell=True)  # Thanks to realnp for ibootim!
             output = so.stdout.read()
             # now create im4p
             so = subprocess.Popen(f"./resources/bin/img4tool -c resources/bootlogo.im4p -t logo resources/bootlogo.ibootim", stdout=subprocess.PIPE, shell=True)
             output = so.stdout.read()
-            # Add signature from shsh 
+            # Add signature from shsh
             so = subprocess.Popen(f"./resources/bin/img4tool -c resources/bootlogo.img4 -p resources/bootlogo.im4p -s resources/shsh.shsh", stdout=subprocess.PIPE, shell=True)
             output = so.stdout.read()
             bootlogoPath = "resources/bootlogo.img4"
@@ -282,7 +284,7 @@ def img4stuff(deviceModel, iOSVersion, useCustomLogo, bootlogoPath):
     # iBSS/iBEC stuff is done, we now need to get devicetree, trustcache and kernel
     print(f"Downloading {iOSVersion}'s BuildManifest.plist")
     try:
-        downloadImages(ipswurl, "BuildManifest.plist", "resources/manifest.plist")
+        api.downloadFileFromArchive("BuildManifest.plist", "resources/manifest.plist")
     except:
         print("ERROR: Failed to download BuildManifest.plist\nPlease re-run PyBoot again and it should work (might take a few tries)")
         exit(2)
@@ -294,10 +296,10 @@ def img4stuff(deviceModel, iOSVersion, useCustomLogo, bootlogoPath):
                 kernelname = line.rstrip()
                 read_plist.close()
                 break
-    kernelname = kernelname[14:-9]  
-    print(f"Downloading {iOSVersion}'s KernelCache")  
+    kernelname = kernelname[14:-9]
+    print(f"Downloading {iOSVersion}'s KernelCache")
     try:
-        downloadImages(ipswurl, kernelname, "resources/kernel.im4p")
+        api.downloadFileFromArchive(kernelname, "resources/kernel.im4p")
     except:
         print("ERROR: Failed to download Kernel\nPlease re-run PyBoot again and it should work (might take a few tries)")
         exit(2)
@@ -308,14 +310,14 @@ def img4stuff(deviceModel, iOSVersion, useCustomLogo, bootlogoPath):
         devicetreename = "DeviceTree.n51ap.im4p"
     print(f"Downloading {iOSVersion}'s DeviceTree")
     try:
-        downloadImages(ipswurl, f"Firmware/all_flash/{devicetreename}", "resources/devicetree.im4p")
+        api.downloadFileFromArchive(f"Firmware/all_flash/{devicetreename}", "resources/devicetree.im4p")
     except:
         print("ERROR: Failed to download DeviceTree\nPlease re-run PyBoot again and it should work (might take a few tries)")
         exit(2)
-    so = check_output(f"./resources/bin/pzb list {ipswurl}", shell=True) # Need to check the downgraded IPSW to get the rootfs trustcache for booting
+    so = check_output(f"./resources/bin/pzb list {ipswurl}", shell=True)  # Need to check the downgraded IPSW to get the rootfs trustcache for booting
     so = str(so)
-    rootfsoffset = so.find("GB") - 24 # This should always work, unless for some reason another file in the IPSW is > 1GB
-    rootfsName = so[int(rootfsoffset):-51] # This should be the correct number to cut from, will test more
+    rootfsoffset = so.find("GB") - 24  # This should always work, unless for some reason another file in the IPSW is > 1GB
+    rootfsName = so[int(rootfsoffset):-51]  # This should be the correct number to cut from, will test more
 
     if '11.' in iOSVersion:
         print("iOS version is 11.x, not downloading trustcache")
@@ -329,7 +331,7 @@ def img4stuff(deviceModel, iOSVersion, useCustomLogo, bootlogoPath):
             keys["ROOTFSNAME"] = rootfsName
             print(f"Downloading {iOSVersion}'s TrustCache")
             try:
-                downloadImages(ipswurl, f'Firmware/{rootfsName}.trustcache', "resources/trustcache.im4p")
+                api.downloadFileFromArchive(f'Firmware/{rootfsName}.trustcache', "resources/trustcache.im4p")
             except:
                 print("ERROR: Failed to download TrustCache\nPlease re-run PyBoot again and it should work (might take a few tries)")
                 exit(2)
@@ -340,7 +342,7 @@ def img4stuff(deviceModel, iOSVersion, useCustomLogo, bootlogoPath):
             if rootfsName.endswith(".dmg"):
                 # checking again and exiting if you enter wrong because you suck
                 keys["ROOTFSNAME"] = rootfsName
-                downloadImages(ipswurl, f'Firmware/{rootfsName}.trustcache', "resources/trustcache.im4p")
+                api.downloadFileFromArchive(f'Firmware/{rootfsName}.trustcache', "resources/trustcache.im4p")
                 time.sleep(5)
             else:
                 print("Start again from the beggining =)")

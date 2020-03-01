@@ -1,7 +1,9 @@
 import os
 import subprocess
 import time
+
 from resources.ipwndfu import checkm8, dfu
+
 
 def pwndfumode():
 
@@ -120,4 +122,3 @@ def pwndfumode():
     else:
         print("Please open an issue and let me know what device you are using/it's CPID and I will add support ASAP")
         exit(2)
-            

@@ -1,7 +1,12 @@
 import json
 import os
+import shutil
 from urllib.request import urlretrieve
-from resources.iospythontools.utils import downloadJSONData, progress, splitToFileName
+
+from remotezip import RemoteZip
+
+from resources.iospythontools.utils import (downloadJSONData, progress,
+                                            splitToFileName)
 
 
 """
@@ -116,3 +121,43 @@ class APIParser(object):
         # TODO Printed signed versions for iPhone4,1 still gives 9.3.5 ipsw and ota
 
         return signedVersions
+
+    def downloadFileFromArchive(self, path, output):
+        buildid = self.iOSToBuildid()
+        self.linksForDevice('ipsw')
+        with open(f'{self.device}.json', 'r') as file:
+            data = json.load(file)
+            i = 0
+            buildidFromJsonFile = data['firmwares'][i]['buildid']
+            while buildidFromJsonFile != buildid:
+                i += 1
+                buildidFromJsonFile = data['firmwares'][i]['buildid']
+
+            url = data['firmwares'][i]['url']
+            filename = splitToFileName(url)
+            zip = RemoteZip(url)
+            print(f"Extracting: {path}, from {filename}")
+            zip.extract(path)
+            zip.close()
+
+            if output:
+
+                shutil.move(path, output)
+
+        file.close()
+
+    def printURLForArchive(self):
+        buildid = self.iOSToBuildid()
+        self.linksForDevice('ipsw')
+        with open(f'{self.device}.json', 'r') as file:
+            data = json.load(file)
+            i = 0
+            buildidFromJsonFile = data['firmwares'][i]['buildid']
+            while buildidFromJsonFile != buildid:
+                i += 1
+                buildidFromJsonFile = data['firmwares'][i]['buildid']
+
+            url = data['firmwares'][i]['url']
+
+        file.close()
+        return url
