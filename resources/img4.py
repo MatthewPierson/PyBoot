@@ -160,9 +160,9 @@ def img4stuff(deviceModel, iOSVersion, useCustomLogo, bootlogoPath):
             'iPod7,1': '12.3.1',
             'iPad7,5': '12.3.1',
             'iPad7,6': '12.3.1',
-            'iPhone6,2': argv[3],  # Since these have all keys up, we can just use whatever the downgraded version is =)
-            'iPhone6,1': argv[3],
-            'iPhone7,2': argv[3],
+            'iPhone6,2': sys.argv[3],  # Since these have all keys up, we can just use whatever the downgraded version is =)
+            'iPhone6,1': sys.argv[3],
+            'iPhone7,2': sys.argv[3],
             'iPhone7,1': '11.4.1'  # Test for 6+ support, may not work
         }
     screenSize = {
