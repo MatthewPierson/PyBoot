@@ -44,6 +44,7 @@ E.G "./pyboot -i iPhone8,1 13.2.3 -b ~/Downloads/bootlogo.png"
 Options:
 
   -i, --ios DEVICE IOS		Device model and downgraded iOS version to boot
+  -q, --ipsw IPSW DEVICE  Path to downloaded IPSW
   -b, --bootlogo LOGO 		Path to .PNG to use as boot logo
   -p, --pwn		            Enter PWNDFU mode, which will also apply sig patches
   -c, --credits			      Show credits
@@ -93,6 +94,8 @@ Thimstar - [img4tool](https://github.com/tihmstar/img4tool), [iBoot64Patcher](ht
 realnp - [ibootim](https://github.com/realnp/ibootim)
 
 axi0mX - [ipwndfu/checkm8](https://github.com/axi0mX/ipwndfu)
+
+dayt0n - [kairos](https://github.com/dayt0n/kairos)
 
 Marco Grassi - [PartialZip](https://github.com/marcograss/partialzip)
 
