@@ -10,15 +10,6 @@ import requests
 
 from resources.iospythontools import iphonewiki, ipswapi
 
-try:
-
-    from PIL import Image
-
-except:
-    print("Failed to import dependencies, please run 'pip3 install -r requirements.txt' then re-run PyBoot")
-    exit(2)
-
-
 def signImages():
     print("Signing boot files")
     # time to sign shit
@@ -200,22 +191,6 @@ def sendImages(iosVersion, useCustomLogo):
 def img4stuff(deviceModel, iOSVersion, useCustomLogo, bootlogoPath, areWeLocal):
     api = ipswapi.APIParser(deviceModel, iOSVersion)
 
-    screenSize = {
-        'iPhone8,1': '1334x750',
-        'iPhone8,2': '1920x1080',
-        'iPhone8,4': '1136x640',
-        'iPhone9,1': '1334x750',
-        'iPhone9,2': '1920x1080',
-        'iPhone9,3': '1334x750',
-        'iPhone9,4': '1920x1080',
-        'iPhone10,3': '2436x1125',
-        'iPhone10,6': '2436x1125',
-        'iPhone6,2': '1136x640',
-        'iPhone6,1': '1136x640',
-        'iPhone7,2': '1334x750',
-        'iPhone7,1': '1920x1080',
-    }
-
     print(f"Checking theiphonewiki for {iOSVersion} keys...")
     wiki = iphonewiki.iPhoneWiki(deviceModel, iOSVersion)
     keys = wiki.getWikiKeys()
@@ -296,15 +271,7 @@ def img4stuff(deviceModel, iOSVersion, useCustomLogo, bootlogoPath, areWeLocal):
 
     if useCustomLogo:
         # Now need to convert the .PNG to a img4 format to use while booting
-        # check png dimensions, make sure its the proper size even though we won't stop if its not
-        im = Image.open(bootlogoPath)
-        w, h = im.size
-        check = f"{h}x{w}"
-        if screenSize[deviceModel] == check:
-            print("Image is correct size and format")
-        else:
-            print(f"Image is {check} but screen is {screenSize[deviceModel]}.\nContinuing anyway, although image may look strange on the device")
-        # Now run ibootim
+
         if str(bootlogoPath).lower().endswith(".png"):
             so = subprocess.Popen(f"./resources/bin/ibootim {bootlogoPath} resources/bootlogo.ibootim", stdout=subprocess.PIPE, shell=True)  # Thanks to realnp for ibootim!
             output = so.stdout.read()
