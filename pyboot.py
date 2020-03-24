@@ -23,7 +23,9 @@ except:
     exit(2)
 
 
+
 tool_version = '\033[92m' + "Beta 0.3" + '\033[0m'  # Leave outside so we have it at an obvious spot to find later
+
 
 def main():
     removeFiles = [

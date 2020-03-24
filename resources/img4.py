@@ -203,6 +203,7 @@ def img4stuff(deviceModel, iOSVersion, useCustomLogo, bootlogoPath, areWeLocal):
     screenSize = {
         'iPhone8,1': '1334x750',
         'iPhone8,2': '1920x1080',
+        'iPhone8,4': '1136x640',
         'iPhone9,1': '1334x750',
         'iPhone9,2': '1920x1080',
         'iPhone9,3': '1334x750',
