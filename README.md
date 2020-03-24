@@ -9,7 +9,7 @@ Don't use this on a main device, expect issues, bugs and other problems that wil
 
 ## What is PyBoot?
 
-PyBoot is a simple alternative to ra1nsn0w for tether booting Checkm8 vulnerable iOS devices. It downloads iOS 12.x iBSS/iBEC (as iBoot64Patcher cannot patch iOS 13 iBSS/iBEC), downloads the Kernel, DeviceTree and TrustCache for the downgraded version, patches the type to the restore type (E.G krnl -> rkrn, etc) and signs them with SHSH, then sends the images to the device and boots them! PyBoot also has support for devices which have key pages on theiphonewiki with multiple platforms (E.G 6s with N71AP and N71mAP), which ra1nsn0w currently doesn't support. 
+PyBoot is a simple alternative to ra1nsn0w for tether booting Checkm8 vulnerable iOS devices. It downloads and patches iBSS/iBEC, downloads the Kernel, DeviceTree and TrustCache for the downgraded version, patches the type to the restore type (E.G krnl -> rkrn, etc) and signs them with SHSH, then sends the images to the device and boots them! PyBoot also has support for devices which have key pages on theiphonewiki with multiple platforms (E.G 6s with N71AP and N71mAP), which ra1nsn0w currently doesn't support. 
 
 PyBoot is most likely extremely broken, expect issues and bugs. I just made this for fun, and to have an alternative to ra1nsn0w for booting tethered downgraded devices with SuccessionDown (my Succession fork for tethered downgrades on-device).
 
@@ -65,8 +65,6 @@ Options:
 
 - Custom bootargs
 
-- Ability to use a local IPSW instead of downloading the required files
-
 - More super secret stuff =)
 
 ## Known Issues
@@ -79,7 +77,7 @@ Options:
 
 - Some iOS versions won't boot due to SEP incompatibilities. I have this partially mitigated by including a check for whether SEP is compatible or not, but obviously this is bypassable. 
 
-## Help PyBoot is giving me errors!
+## Help, PyBoot is giving me errors!
 
 - First make sure you have ran "pip3 install -r requirements.txt" before doing anything
 
