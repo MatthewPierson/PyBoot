@@ -9,4 +9,5 @@
 *.raw
 *.pwn
 .irecovery
+IPSW/
 venv
