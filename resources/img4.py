@@ -313,6 +313,8 @@ def img4stuff(deviceModel, iOSVersion, useCustomLogo, bootlogoPath, areWeLocal):
 
         print(f"Downloading {iOSVersion}'s KernelCache")
         try:
+            if deviceModel == "iPhone8,4":
+                kernelname = "kernelcache.release.iphone8b"
             api.downloadFileFromArchive(kernelname, "resources/kernel.im4p")
         except:
             print("ERROR: Failed to download Kernel\nPlease re-run PyBoot again and it should work (might take a few tries)")
