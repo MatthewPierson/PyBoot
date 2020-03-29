@@ -61,7 +61,7 @@ class iPhoneWiki(object):
         ramdiskname = str(data[6])
         ramdiskname = ramdiskname[24:] + ".dmg"
         keysDict["RESTORERAMDISK"] = ramdiskname
-        if " | Model               =" or " | Model                 =" in s:
+        if " | Model2                =" in s:
             multiplekeys = True
             print("Found a keys page with multiple models...\nWhich is your device?")
             for keys in data:
