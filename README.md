@@ -44,13 +44,13 @@ E.G "./pyboot.py -i iPhone8,1 13.2.3 -b ~/Downloads/bootlogo.png"
 Options:
 
   -i, --ios DEVICE IOS		Device model and downgraded iOS version to boot
-  -q, --ipsw IPSW DEVICE  Path to downloaded IPSW
+  -q, --ipsw IPSW DEVICE        Path to downloaded IPSW
   -b, --bootlogo LOGO 		Path to .PNG to use as boot logo
-  -p, --pwn		            Enter PWNDFU mode, which will also apply sig patches
-  -d, --dualboot          Name of system partition you wish to boot (e.g disk0s1s3 or disk0s1s6)
-  -a, --bootargs          Custom boot-args, will prompt user to enter, don't enter a value upon running PyBoot (Default is '-v')
-  -c, --credits			      Show credits
-  -v, --version			      List the version of PyBoot
+  -p, --pwn 		        Enter PWNDFU mode, which will also apply sig patches
+  -d, --dualboot PARTITION      Name of system partition you wish to boot (e.g disk0s1s3 or disk0s1s6)
+  -a, --bootargs 		Custom boot-args, will prompt user to enter, don't enter a value upon running PyBoot (Default is '-v')
+  -c, --credits 		Show credits
+  -v, --version 		List the version of PyBoot
 
 ```
 
@@ -64,8 +64,6 @@ Options:
 6. Enjoy! 
 
 ## Upcoming Features
-
-- Custom bootargs
 
 - More super secret stuff =)
 
