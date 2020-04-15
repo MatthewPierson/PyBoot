@@ -37,9 +37,9 @@ Currently iPhone X support is broken (kernel panicking 30~ seconds after booting
 
 ## Usage
 ```
-Usage: pyboot [OPTIONS]
+Usage: ./pyboot.py [OPTIONS]
 
-E.G "./pyboot -i iPhone8,1 13.2.3 -b ~/Downloads/bootlogo.png"
+E.G "./pyboot.py -i iPhone8,1 13.2.3 -b ~/Downloads/bootlogo.png"
 
 Options:
 
@@ -47,6 +47,8 @@ Options:
   -q, --ipsw IPSW DEVICE  Path to downloaded IPSW
   -b, --bootlogo LOGO 		Path to .PNG to use as boot logo
   -p, --pwn		            Enter PWNDFU mode, which will also apply sig patches
+  -d, --dualboot          Name of system partition you wish to boot (e.g disk0s1s3 or disk0s1s6)
+  -a, --bootargs          Custom boot-args, will prompt user to enter, don't enter a value upon running PyBoot (Default is '-v')
   -c, --credits			      Show credits
   -v, --version			      List the version of PyBoot
 
@@ -57,7 +59,7 @@ Options:
 1. cd into the PyBoot directory
 2. Run pip3 install -r requirements.txt
 3. Connect your device in DFU mode to your computer
-4. Run PyBoot with your desiered options - E.G './pyboot -i iPhone8,1 13.1.1 -b ~/Downloads/customBootLogo.png'
+4. Run PyBoot with your desiered options - E.G './pyboot.py -i iPhone8,1 13.1.1 -b ~/Downloads/customBootLogo.png'
 5. Run PyBoot whenever you want to boot the device
 6. Enjoy! 
 

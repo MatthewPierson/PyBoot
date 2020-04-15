@@ -114,7 +114,6 @@ def sendImages(iosVersion, useCustomLogo):
 
     cmd = 'bin/irecovery -c "devicetree"'
     so = subprocess.Popen(cmd, shell=True)
-    print(so)  # For some weird reason, devicetree won't execute properly unless I print this?????? If I don't then I have to send devicetree/trustcache/kernel again after bootx fails
     time.sleep(2)
 
     if not '11.' in iosVersion:  # 11.x and lower don't need trustcache sent to boot =)
@@ -135,60 +134,10 @@ def sendImages(iosVersion, useCustomLogo):
     so = subprocess.Popen(cmd, shell=True)
     time.sleep(2)
 
-    cmd = f"bin/irecovery -m"
-    so = subprocess.Popen(cmd, shell=True)
-    time.sleep(10)
-
-    if "Recovery Mode" in str(so):
-        test = True
-    else:
-        test = False
-    if test:
-        if useCustomLogo:
-            cmd = f"bin/irecovery -f bootlogo.img4"
-            so = subprocess.Popen(cmd, shell=True)
-            time.sleep(2)
-
-            cmd = 'bin/irecovery -c "setpicture 0"'
-            so = subprocess.Popen(cmd, shell=True)
-            time.sleep(2)
-
-            cmd = 'bin/irecovery -c "bgcolor 0 0 0"'
-            so = subprocess.Popen(cmd, shell=True)
-            time.sleep(2)
-
-        cmd = "bin/irecovery -f devicetree.img4"
-        so = subprocess.Popen(cmd, shell=True)
-        time.sleep(2)
-
-        cmd = 'bin/irecovery -c "devicetree"'
-        so = subprocess.Popen(cmd, shell=True)
-        print(so)  # For some weird reason, devicetree won't execute properly unless I print this?????? If I don't then I have to send devicetree/trustcache/kernel again after bootx fails
-        time.sleep(2)
-
-        if not '11.' in iosVersion:  # 11.x and lower don't need trustcache sent to boot =)
-
-            cmd = "bin/irecovery -f trustcache.img4"
-            so = subprocess.Popen(cmd, shell=True)
-            time.sleep(2)
-
-            cmd = 'bin/irecovery -c "firmware"'
-            so = subprocess.Popen(cmd, shell=True)
-            time.sleep(2)
-
-        cmd = "bin/irecovery -f kernel.img4"
-        so = subprocess.Popen(cmd, shell=True)
-        time.sleep(2)
-
-        cmd = 'bin/irecovery -c "bootx"'
-        so = subprocess.Popen(cmd, shell=True)
-        time.sleep(2)
-
-    print("Should be good?")
     os.chdir("../")
 
 
-def img4stuff(deviceModel, iOSVersion, useCustomLogo, bootlogoPath, areWeLocal):
+def img4stuff(deviceModel, iOSVersion, useCustomLogo, bootlogoPath, areWeLocal, bootOtherOS, bootArgs):
     api = ipswapi.APIParser(deviceModel, iOSVersion)
 
     print(f"Checking theiphonewiki for {iOSVersion} keys...")
@@ -203,7 +152,7 @@ def img4stuff(deviceModel, iOSVersion, useCustomLogo, bootlogoPath, areWeLocal):
     iBSSKey = keys["IBSSKEY"]
     iBSSIV = keys["IBSSIV"]
     if iBECIV == "Unknown":  # Just making sure that there is keys, some key pages have keys for one model but not the other which could cause issues
-        print("Keys for the other device model are present but not for yours sorry\nFeel free to get them and add them to theiphonewiki =)")
+        print("Keys for the other device model are present but not for your model, sorry.\nFeel free to get them and add them to theiphonewiki =)")
         exit(2)
 
     ipswurl = api.printURLForArchive()
@@ -242,19 +191,27 @@ def img4stuff(deviceModel, iOSVersion, useCustomLogo, bootlogoPath, areWeLocal):
     so = subprocess.Popen(f"./resources/bin/img4tool -e -o resources/ibss.raw --iv {iBSSIV} --key {iBSSKey} resources/ibss.im4p", stdout=subprocess.PIPE, shell=True)
     output = so.stdout.read()
     if useCustomLogo:
-        so = subprocess.Popen(f'./resources/bin/kairos resources/ibss.raw resources/ibss.pwn', stdout=subprocess.PIPE, shell=True)
-        output = so.stdout.read()
+        if bootOtherOS:
+            so = subprocess.Popen(f'./resources/bin/kairos resources/ibss.raw resources/ibss.pwn -b "{bootArgs}"', stdout=subprocess.PIPE, shell=True)
+            output = so.stdout.read()
+        else:
+            so = subprocess.Popen(f'./resources/bin/kairos resources/ibss.raw resources/ibss.pwn', stdout=subprocess.PIPE, shell=True)
+            output = so.stdout.read()
     else:
-        so = subprocess.Popen(f'./resources/bin/kairos resources/ibss.raw resources/ibss.pwn -b "-v"', stdout=subprocess.PIPE, shell=True)
+        so = subprocess.Popen(f'./resources/bin/kairos resources/ibss.raw resources/ibss.pwn -b "{bootArgs}"', stdout=subprocess.PIPE, shell=True)
         output = so.stdout.read()
 
     so = subprocess.Popen(f"./resources/bin/img4tool -e -o resources/ibec.raw --iv {iBECIV} --key {iBECKey} resources/ibec.im4p", stdout=subprocess.PIPE, shell=True)
     output = so.stdout.read()
     if useCustomLogo:
-        so = subprocess.Popen(f'./resources/bin/kairos resources/ibec.raw resources/ibec.pwn', stdout=subprocess.PIPE, shell=True)
-        output = so.stdout.read()
+        if bootOtherOS:
+            so = subprocess.Popen(f'./resources/bin/kairos resources/ibec.raw resources/ibec.pwn -b "{bootArgs}"', stdout=subprocess.PIPE, shell=True)
+            output = so.stdout.read()
+        else:
+            so = subprocess.Popen(f'./resources/bin/kairos resources/ibec.raw resources/ibec.pwn', stdout=subprocess.PIPE, shell=True)
+            output = so.stdout.read()
     else:
-        so = subprocess.Popen(f'./resources/bin/kairos resources/ibec.raw resources/ibec.pwn -b "-v"', stdout=subprocess.PIPE, shell=True)
+        so = subprocess.Popen(f'./resources/bin/kairos resources/ibec.raw resources/ibec.pwn -b "{bootArgs}"', stdout=subprocess.PIPE, shell=True)
         output = so.stdout.read()
 
     so = subprocess.Popen(f"./resources/bin/img4tool -c resources/ibec.patched -t ibec resources/ibec.pwn", stdout=subprocess.PIPE, shell=True)
@@ -366,7 +323,7 @@ def img4stuff(deviceModel, iOSVersion, useCustomLogo, bootlogoPath, areWeLocal):
                     exit(2)
                 time.sleep(5)
             else:
-                print("Failed to get RootFS name\nPlease read through this output and enter the name of the largest .dmg file\n")
+                print(f"\nFailed to get RootFS name\nPlease look up the RootFS filename on the key page for {deviceModel} - iOS {iOSVersion} theiphonewiki and type it here then press enter:\n")
                 rootfsName = input()
                 if rootfsName.endswith(".dmg"):
                     # checking again and exiting if you enter wrong because you suck

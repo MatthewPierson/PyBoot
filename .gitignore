@@ -10,4 +10,7 @@
 *.pwn
 .irecovery
 IPSW/
+SSH/
 venv
+*.dmg
+resources/manifest.plist

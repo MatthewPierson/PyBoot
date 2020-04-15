@@ -1,30 +1,48 @@
 #!/usr/bin/env python3
 
-import argparse
-import os
-import platform
-import plistlib
-import re
-import shutil
 import subprocess
 import sys
-import time
-from subprocess import check_output
-
-from resources import img4, pwn, ipsw
-from resources.iospythontools import iphonewiki, ipswapi, utils
 
 try:
 
+    import argparse
+    import os
+    import platform
+    import plistlib
+    import re
+    import shutil
+    import time
+    from subprocess import check_output
+    from argparse import RawTextHelpFormatter
+    from resources import img4, pwn, ipsw
+    from resources.iospythontools import iphonewiki, ipswapi, utils
     from PIL import Image
 
 except:
-    print("Failed to import dependencies, please run 'pip3 install -r requirements.txt' then re-run PyBoot")
-    exit(2)
+    print("Failed to import dependencies, running pip to install them...")
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"])
+    try:
+        import argparse
+        import os
+        import platform
+        import plistlib
+        import re
+        import shutil
+        import time
+        from subprocess import check_output
+        from argparse import RawTextHelpFormatter
+        from resources import img4, pwn, ipsw
+        from resources.iospythontools import iphonewiki, ipswapi, utils
+        from PIL import Image
+
+    except:
+        print("\n\nFailed to install dependencies, please manually run 'pip3 install -r requirements.txt' then re-run PyBoot") # Simplest way to make sure the user knows what to do if they haven't installed dependencies yet
+        exit(0)
+    print("\n\nSuccessfully installed dependencies!\n\nContinuing with PyBoot...\n")
 
 
 
-tool_version = '\033[92m' + "Beta 0.3" + '\033[0m'  # Leave outside so we have it at an obvious spot to find later
+tool_version = '\033[92m' + "Beta 0.4" + '\033[0m'
 
 
 def main():
@@ -52,20 +70,20 @@ def main():
         "resources/bootlogo.img4"
     ]
 
-    for item in removeFiles:
+    for item in removeFiles: # removes files from above list
         if os.path.isfile(item):
             os.remove(item)
 
-    utils.clean()
-
-    argv = sys.argv
+    utils.clean() # removes potentially out of date JSON files 
 
     text = 'PyBoot - A tool for tether booting Checkm8 vulnerable iOS devices by Matty, @mosk_i.'
-    parser = argparse.ArgumentParser(description=text, usage=f"pyboot -i 'iOS version'\n\nE.G './pyboot -i iPhone9,2 13.2.3 -b ~/Downloads/bootlogo.png'\n\nCurrent PyBoot version is: {tool_version}")
-    parser.add_argument("-i", "--ios", help="iOS version you wish to boot", nargs=2, metavar=('DEVICE', 'iOS'))
-    parser.add_argument("-q", "--ipsw", help="Path to downloaded IPSW", nargs=2, metavar=('IPSW', 'DEVICE'))
-    parser.add_argument("-b", "--bootlogo", help="Path to .PNG you wish to use as a custom Boot Logo (Must be a .png file with the correct resolution/aspect ratio)", nargs=1, metavar=("LOGO"))
+    parser = argparse.ArgumentParser(description=text, formatter_class=RawTextHelpFormatter, usage=f"./pyboot.py -i 'DEVICE IOS'\n\nE.G './pyboot.py -i iPhone9,2 13.2.3 -b ~/Downloads/bootlogo.png'\n\nCurrent PyBoot version is: {tool_version}", epilog="EXAMPLE USAGE: ./pyboot.py -i iPhone8,1 13.4.1 -d disk0s1s6\n\nOR ./pyboot -i iPhone9,4 13.1.3 -b ~/Downloads/bootlogo.png\n\nOR ./pyboot -q ~/Downloads/13.2.3.iPhone7.ipsw iPhone9,1 -a")
+    parser.add_argument("-i", "--ios", help="iOS version you wish to boot (DEVICE IOS)", nargs=2, metavar=('\b', '\b'))
+    parser.add_argument("-q", "--ipsw", help="Path to downloaded IPSW (PATH DEVICE)", nargs=2, metavar=('\b', '\b'))
+    parser.add_argument("-b", "--bootlogo", help="Path to .PNG you wish to use as a custom Boot Logo (LOGO)", nargs=1, metavar=("\b"))
     parser.add_argument('-p', '--pwn', help='Enter PWNDFU mode, which will also apply signature patches', action='store_true')
+    parser.add_argument("-d", "--dualboot", help="Name of system partition you wish to boot (e.g disk0s1s3 or disk0s1s6)", nargs=1, metavar=("\b"))
+    parser.add_argument("-a", "--bootargs", help="Custom boot-args, will prompt user to enter, don't enter a value upon running PyBoot (Default is '-v')", action='store_true')
     parser.add_argument("-v", "--version", help="List the version of the tool", action="store_true")
     parser.add_argument("-c", "--credits", help="List credits", action="store_true")
 
@@ -99,54 +117,78 @@ def main():
     elif args.ipsw:
         if args.bootlogo:
             useCustomLogo = True
-            logopath = argv[5]
+            logopath = args.bootlogo[0]
         else:
             useCustomLogo = False
             logopath = "null"
+        if args.dualboot:
+            bootOtherOS = True
+            sysPartName = args.dualboot[0]
+            bootArgs = f"rd={sysPartName} -v"
+            if args.bootargs:
+                print(f"\n" + '\033[93m' + "WARNING:" + '\033[0m' + f"'-a' was specified indicating the user wanted to set custom boot-args, but '-d' was also set which currently doesn't support custom boot-args...\nIgnoring '-a' and continuing with '{bootArgs}' as the set boot-args.\n")
+        else:
+            bootOtherOS = False
+            if args.bootargs:
+                bootArgs = input("Please enter the boot-args you want to use then press enter: ")
+            else:
+                bootArgs = "-v"
+        
             
         print('\033[95m' + "PyBoot - A tool for tether booting Checkm8 vulnerable iOS devices by Matty, @mosk_i\n" + '\033[0m')
         print("Current version is: " + tool_version)
         print("User chose to use a locally stored IPSW, running some checks...")
         if os.path.exists("IPSW"):
             shutil.rmtree("IPSW")
-        ipsw.unzipIPSW(argv[2])
+        ipsw.unzipIPSW(args.ipsw[0])
         version = False
         supportedModels = str(ipsw.readmanifest("IPSW/BuildManifest.plist", version))
-        if argv[3] in supportedModels:
+        if args.ipsw[1] in supportedModels:
             print("IPSW is for given device!")
         else:
             print("Sorry this IPSW is not valid for the given device, either run PyBoot with -i to download the correct files or download the correct ipsw from ipsw.me")
             exit(0)
         version = True
         iosVersion = str(ipsw.readmanifest("IPSW/BuildManifest.plist", version))
-        print(f"iOS version is: {iosVersion} and device model is: {argv[3]}")
+        print(f"iOS version is: {iosVersion} and device model is: {args.ipsw[1]}")
         time.sleep(5)
 
         arewelocal = True
-        img4.img4stuff(argv[3], iosVersion, useCustomLogo, logopath, arewelocal)
+        img4.img4stuff(args.ipsw[1], iosVersion, useCustomLogo, logopath, arewelocal, bootOtherOS, bootArgs)
 
         # now to pwn device
         print("Exploiting device with checkm8")
         pwn.pwndfumode()
 
         # Send files to device and boot =)
-        img4.sendImages(argv[3], useCustomLogo)
+        img4.sendImages(iosVersion, useCustomLogo)
 
         print("Device should be booting!")
         exit(0)
     elif args.ios:
-
+        print('\033[95m' + "PyBoot - A tool for tether booting Checkm8 vulnerable iOS devices by Matty, @mosk_i\n" + '\033[0m')
+        print("Current version is: " + tool_version)
         if args.bootlogo:
             useCustomLogo = True
-            logopath = argv[5]
+            logopath = args.bootlogo[0]
         else:
             useCustomLogo = False
             logopath = "null"
+        if args.dualboot:
+            bootOtherOS = True
+            sysPartName = args.dualboot[0]
+            bootArgs = f"rd={sysPartName} -v"
+            print(f"User choose to boot {args.ios[1]} from /dev/{sysPartName}.")
+            if args.bootargs:
+                print(f"\n" + '\033[93m' + "WARNING:" + '\033[0m' + f"'-a' was specified indicating the user wanted to set custom boot-args, but '-d' was also set which currently doesn't support custom boot-args...\nIgnoring '-a' and continuing with '{bootArgs}' as the set boot-args.\n")
+        else:
+            bootOtherOS = False
+            if args.bootargs:
+                bootArgs = input("Please enter the boot-args you want to use then press enter: ")
+            else:
+                bootArgs = "-v"
 
-        print('\033[95m' + "PyBoot - A tool for tether booting Checkm8 vulnerable iOS devices by Matty, @mosk_i\n" + '\033[0m')
-        print("Current version is: " + tool_version)
-
-        if "10." in argv[3]:
+        if "10." in (str(args.ios))[2:-2]:
             print("\nWARNING - 10.x Currently WILL NOT BOOT. You can try if you want to but expect it not to boot!\nPress enter to continue or type anything else and press enter to exit")
             choice = input("")
             if choice == "":
@@ -158,14 +200,14 @@ def main():
         print("Make sure your device is connected in DFU mode")
         time.sleep(5)
         arewelocal = False
-        img4.img4stuff(argv[2], argv[3], useCustomLogo, logopath, arewelocal)
+        img4.img4stuff(args.ios[0], args.ios[1], useCustomLogo, logopath, arewelocal, bootOtherOS, bootArgs)
 
         # now to pwn device
         print("Exploiting device with checkm8")
         pwn.pwndfumode()
 
         # Send files to device and boot =)
-        img4.sendImages(argv[3], useCustomLogo)
+        img4.sendImages(args.ios[1], useCustomLogo)
 
         print("Device should be booting!")
         exit(2)
