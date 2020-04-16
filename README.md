@@ -9,7 +9,7 @@ Don't use this on a main device, expect issues, bugs and other problems that wil
 
 ## What is PyBoot?
 
-PyBoot is a simple alternative to ra1nsn0w for tether booting Checkm8 vulnerable iOS devices. It downloads and patches iBSS/iBEC, downloads the Kernel, DeviceTree and TrustCache for the downgraded version, patches the type to the restore type (E.G krnl -> rkrn, etc) and signs them with SHSH, then sends the images to the device and boots them! PyBoot also has support for devices which have key pages on theiphonewiki with multiple platforms (E.G 6s with N71AP and N71mAP), which ra1nsn0w currently doesn't support. 
+PyBoot is a simple alternative to ra1nsn0w for tether booting Checkm8 vulnerable iOS devices. It downloads and patches iBSS/iBEC, downloads the Kernel, DeviceTree and TrustCache for the downgraded version, patches the type to the restore type (E.G krnl -> rkrn, etc) and signs them with SHSH, then sends the images to the device and boots them! PyBoot also doesn't rely on keys being available on theiphonewiki, if there are no keys online then it will place your device into PWNDFU mode and retrieve them automatically!
 
 PyBoot is most likely extremely broken, expect issues and bugs. I just made this for fun, and to have an alternative to ra1nsn0w for booting tethered downgraded devices with SuccessionDown (my Succession fork for tethered downgrades on-device).
 
