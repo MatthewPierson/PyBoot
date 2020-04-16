@@ -40,7 +40,7 @@ except:
 
 
 
-tool_version = '\033[92m' + "Beta 0.4" + '\033[0m'
+tool_version = '\033[92m' + "Beta 0.5" + '\033[0m'
 
 
 def main():
