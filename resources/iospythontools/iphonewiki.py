@@ -53,8 +53,8 @@ class iPhoneWiki(object):
         if " | RootFSKey             = Not Encrypted" in s or " | RootFSKey           = Not Encrypted" in s or " | RootFSKey            = Not Encrypted" in s: # First string checks for 11.x and second for rest. For some reason its needed even though they seem the same
             print("Found Keys!")
         else: 
-            print("No Key, exiting.")
-            exit()
+            keysDict['failed'] = "failed"
+            return keysDict
         data = request.split('{{keys')[1].split('}}')[0].replace('|', '').splitlines()
         del data[0:8]  # Remove the top info we don't need
 

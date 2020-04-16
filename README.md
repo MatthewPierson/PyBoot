@@ -102,4 +102,3 @@ Merculous - [ios-python-tools](https://github.com/Merculous/ios-python-tools) (i
 0x7ff - [Eclipsa](https://github.com/0x7ff/eclipsa)
 
 libimobiledevice team - [irecovery](https://github.com/libimobiledevice/libirecovery)
-

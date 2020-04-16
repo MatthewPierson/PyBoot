@@ -5,10 +5,11 @@ import subprocess
 import sys
 import time
 from subprocess import check_output
+from resources.pwn import pwndfumode, decryptKBAG, pwndfumodeKeys
 
 import requests
 
-from resources.iospythontools import iphonewiki, ipswapi
+from resources.iospythontools import iphonewiki, ipswapi, utils
 
 def signImages():
     print("Signing boot files")
@@ -143,21 +144,85 @@ def img4stuff(deviceModel, iOSVersion, useCustomLogo, bootlogoPath, areWeLocal, 
     print(f"Checking theiphonewiki for {iOSVersion} keys...")
     wiki = iphonewiki.iPhoneWiki(deviceModel, iOSVersion)
     keys = wiki.getWikiKeys()
+    if 'failed' in keys:
+        print("Keys weren't found for your device, PyBoot will place your device into PWNDFU mode and retrieve the needed keys...\n")
+        print("Please ensure your device is connected in DFU mode...")
+        time.sleep(5)
+        pwndfumodeKeys()
+        needKeys = True
+    else:
 
-    iBECName = keys["IBEC"]
-    iBECKey = keys["IBECKEY"]
-    iBECIV = keys["IBECIV"]
+        needKeys = False
 
-    iBSSName = keys["IBSS"]
-    iBSSKey = keys["IBSSKEY"]
-    iBSSIV = keys["IBSSIV"]
-    if iBECIV == "Unknown":  # Just making sure that there is keys, some key pages have keys for one model but not the other which could cause issues
-        print("Keys for the other device model are present but not for your model, sorry.\nFeel free to get them and add them to theiphonewiki =)")
-        exit(2)
+        iBECName = keys["IBEC"]
+        iBECKey = keys["IBECKEY"]
+        iBECIV = keys["IBECIV"]
+
+        iBSSName = keys["IBSS"]
+        iBSSKey = keys["IBSSKEY"]
+        iBSSIV = keys["IBSSIV"]
+        if iBECIV == "Unknown":  # Just making sure that there is keys, some key pages have keys for one model but not the other which could cause issues
+            print("Keys for the other device model are present but not for your model.\nPyBoot will place your device into PWNDFU mode and retrieve the needed keys...")
+            print("Please ensure your device is connected in DFU mode...")
+            time.sleep(5)
+            pwndfumodeKeys()
+            needKeys = True
 
     ipswurl = api.printURLForArchive()
 
     # geting shsh
+    if areWeLocal == False:
+        print(f"Downloading {iOSVersion}'s BuildManifest.plist")
+        try:
+            api.downloadFileFromArchive("BuildManifest.plist", "resources/manifest.plist")
+        except:
+            print("ERROR: Failed to download BuildManifest.plist\nPlease re-run PyBoot again and it should work (might take a few tries)")
+            exit(2)
+    else:
+        if os.path.exists("IPSW/BuildManifest.plist"):
+            shutil.move("IPSW/BuildManifest.plist", "resources/manifest.plist")
+        else:
+            sys.exit("ERROR: Couldn't find local BuildManifest")
+    if needKeys:
+        line_number = 0
+        count = 0
+        thing = False
+        models = []
+        with open("./resources/manifest.plist", mode="rt") as read_plist:
+            for line in read_plist:
+                line_number += 1
+                if thing == True:
+                    deviceModel = line.rstrip()
+                    models.append(deviceModel)
+                    thing = False
+                    if count == 2:
+                        break
+                if re.search("DeviceClass", line):
+                    line_number += 1
+                    thing = True
+                    count += 1
+            read_plist.close()
+
+        choice1 = models[0]
+        choice2 = models[1]
+        choice1 = str(choice1.strip('\t\t\t'))
+        choice2 = str(choice2.strip('\t\t\t'))
+        choice1 = choice1[8:-9]
+        choice2 = choice2[8:-9]
+        print(f"Found multiple device models...\nWhich is your device?\n")
+        print(f"1: {choice1}\n2: {choice2}\n")
+        modelchoice = input("Enter 1 or 2: ")
+        if modelchoice == "1":
+            print(f"Device set to {choice1}")
+            iBECName = f"iBEC.{choice1[:-2]}.RELEASE.im4p"
+            iBSSName = f"iBSS.{choice1[:-2]}.RELEASE.im4p"
+        elif modelchoice == "2":
+            print(f"Device set to {choice2}")
+            iBECName = f"iBEC.{choice2[:-2]}.RELEASE.im4p"
+            iBSSName = f"iBSS.{choice2[:-2]}.RELEASE.im4p"
+        else:
+            print("Invalid input...\nExiting...")
+            exit(0)
     print("Getting SHSH for signing images")
     so = subprocess.Popen(f"./resources/bin/tsschecker -d iPhone6,2 -e 12326262 -l -s", stdout=subprocess.PIPE, shell=True)
     output = so.stdout.read()
@@ -187,9 +252,49 @@ def img4stuff(deviceModel, iOSVersion, useCustomLogo, bootlogoPath, areWeLocal, 
         shutil.move(f"IPSW/{iBECName}", "resources/ibec.im4p")
         shutil.move(f"IPSW/{iBSSName}", "resources/ibss.im4p")
 
-    # Assuming that worked (add checks) we now need to decrpyt and patch iBSS/iBEC for booting
+    if needKeys:
+        so = subprocess.Popen("./resources/bin/img4tool -a resources/ibss.im4p", stdout=subprocess.PIPE, shell=True)
+        output = so.stdout.read()
+        output = output.decode("utf-8")
+
+        offset1 = output.find("num: 1")
+        offset2 = output.find("num: 2")
+        offset1 += 7
+        iBSSKBAG = output[offset1:offset2]
+        iBSSKBAG = iBSSKBAG.strip('\n')
+        iBSSKBAG = iBSSKBAG[0 : 32 : ] + iBSSKBAG[32 + 1 : :]
+
+        so = subprocess.Popen("./resources/bin/img4tool -a resources/ibec.im4p", stdout=subprocess.PIPE, shell=True)
+        output = so.stdout.read()
+        output = output.decode("utf-8")
+
+        offset1 = output.find("num: 1")
+        offset2 = output.find("num: 2")
+        offset1 += 7
+        iBECKBAG = output[offset1:offset2]
+        iBECKBAG = iBECKBAG.strip(  '\n')
+        iBECKBAG = iBECKBAG[0 : 32 : ] + iBECKBAG[32 + 1 : :]
+
+        ibssIVKEY = decryptKBAG(iBSSKBAG)
+        ibecIVKEY = decryptKBAG(iBECKBAG)
+
+        if len(ibssIVKEY) != 96 or len(ibecIVKEY) != 96:
+            print(ibssIVKEY)
+            print(ibecIVKEY)
+            sys.exit('String provided is not 96 bytes!')
+        else:
+            iBSSIV = ibssIVKEY[:32]
+            iBSSKey = ibssIVKEY[-64:]
+            iBECIV = ibecIVKEY[:32]
+            iBECKey = ibecIVKEY[-64:]
+
+        print("\n\nDevice needs to be rebooted in order to continue, please re-enter DFU mode and then press enter to continue...")
+        print("If you do not reboot the device into DFU mode, PyBoot will fail to send the needed boot components")
+        print("Waiting for user to press enter...")
+        input()
+        
     so = subprocess.Popen(f"./resources/bin/img4tool -e -o resources/ibss.raw --iv {iBSSIV} --key {iBSSKey} resources/ibss.im4p", stdout=subprocess.PIPE, shell=True)
-    output = so.stdout.read()
+    output = so.stdout.read()    
     if useCustomLogo:
         if bootOtherOS:
             so = subprocess.Popen(f'./resources/bin/kairos resources/ibss.raw resources/ibss.pwn -b "{bootArgs}"', stdout=subprocess.PIPE, shell=True)
@@ -245,18 +350,6 @@ def img4stuff(deviceModel, iOSVersion, useCustomLogo, bootlogoPath, areWeLocal, 
     else:
         pass
     # iBSS/iBEC stuff is done, we now need to get devicetree, trustcache and kernel
-    if areWeLocal == False:
-        print(f"Downloading {iOSVersion}'s BuildManifest.plist")
-        try:
-            api.downloadFileFromArchive("BuildManifest.plist", "resources/manifest.plist")
-        except:
-            print("ERROR: Failed to download BuildManifest.plist\nPlease re-run PyBoot again and it should work (might take a few tries)")
-            exit(2)
-    else:
-        if os.path.exists("IPSW/BuildManifest.plist"):
-            shutil.move("IPSW/BuildManifest.plist", "resources/manifest.plist")
-        else:
-            sys.exit("ERROR: Couldn't find local BuildManifest")
     line_number = 0
     with open("./resources/manifest.plist", mode="rt") as read_plist:
         for line in read_plist:
