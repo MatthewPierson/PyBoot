@@ -87,11 +87,11 @@ Options:
 
 Me - For writing this whole thing :)
 
-Thimstar - [img4tool](https://github.com/tihmstar/img4tool), [iBoot64Patcher](https://github.com/tihmstar/iBoot64Patcher), [tsschecker](https://github.com/tihmstar/tsschecker)
+axi0mX - [ipwndfu/checkm8](https://github.com/axi0mX/ipwndfu)
+
+Thimstar - [img4tool](https://github.com/tihmstar/img4tool), [tsschecker](https://github.com/tihmstar/tsschecker)
 
 realnp - [ibootim](https://github.com/realnp/ibootim)
-
-axi0mX - [ipwndfu/checkm8](https://github.com/axi0mX/ipwndfu)
 
 dayt0n - [kairos](https://github.com/dayt0n/kairos)
 
