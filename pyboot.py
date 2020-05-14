@@ -39,11 +39,7 @@ except:
     print("\n\nSuccessfully installed dependencies!\n\nContinuing with PyBoot...\n")
 
 
-
-tool_version = '\033[92m' + "Beta 0.5.1" + '\033[0m'
-
-
-def main():
+def removeFiles():
     removeFiles = [
         'resources/devicetree.im4p',
         'resources/devicetree.img4',
@@ -59,18 +55,34 @@ def main():
         'resources/ibss.patched',
         'resources/kernel.im4p',
         'resources/kernel.img4',
+        'resources/kernel.raw',
+        'resources/kernel.patched',
+        'resources/kernel.compressed',
         'resources/manifest.plist',
         'resources/shsh.shsh',
+        'resources/IM4M',
+        'resources/devicetree.raw',
+        'resources/devicetree.patched',
         'resources/trustcache.im4p',
         'resources/trustcache.img4',
         'resources/bootlogo.im4p',
         'resources/bootlogo.ibootim',
-        "resources/bootlogo.img4"
+        'resources/bootlogo.img4',
+        'resources/aopfw.img4',
+        'resources/aopfw.im4p'
     ]
 
     for item in removeFiles: # removes files from above list
         if os.path.isfile(item):
             os.remove(item)
+    return
+
+tool_version = '\033[92m' + "Beta 0.6" + '\033[0m'
+
+
+def main():
+    
+    removeFiles()
 
     utils.clean() # removes potentially out of date JSON files 
 
@@ -80,6 +92,8 @@ def main():
     parser.add_argument("-q", "--ipsw", help="Path to downloaded IPSW (PATH DEVICE)", nargs=2, metavar=('\b', '\b'))
     parser.add_argument("-b", "--bootlogo", help="Path to .PNG you wish to use as a custom Boot Logo (LOGO)", nargs=1, metavar=("\b"))
     parser.add_argument('-p', '--pwn', help='Enter PWNDFU mode, which will also apply signature patches', action='store_true')
+    parser.add_argument("--amfi", help="Apply AMFI patches to kernel (Beta)", action="store_true")
+    parser.add_argument("--debug", help="Send verbose boot log to serial for debugging", action="store_true")
     parser.add_argument("-d", "--dualboot", help="Name of system partition you wish to boot (e.g disk0s1s3 or disk0s1s6)", nargs=1, metavar=("\b"))
     parser.add_argument("-a", "--bootargs", help="Custom boot-args, will prompt user to enter, don't enter a value upon running PyBoot (Default is '-v')", action='store_true')
     parser.add_argument("-v", "--version", help="List the version of the tool", action="store_true")
@@ -97,15 +111,18 @@ def main():
     args = parser.parse_args()
 
     if args.credits:
-        print('\033[95m' + "\nCreated by: Matty - @mosk_i\n" + '\033[0m')
-        print('\033[94m' + "Other parts by -\n" + '\033[0m')
+        print('\033[95m' + "\nPyBoot Created by: Matty - @mosk_i\n" + '\033[0m')
+        print('\033[94m' + "Other Tools by -\n" + '\033[0m')
         print('\033[92m' + "Thimstar - [img4tool]")
         print("realnp - [ibootim]")
         print("axi0mX - [ipwndfu/checkm8]")
         print("dayt0n - [kairos]")
+        print("xerub - [img4]")
         print("Marco Grassi - [PartialZip]")
         print("Merculous - [ios-python-tools]")
         print("0x7ff - [Eclipsa]")
+        print("Ralph0045 - [dtree_patcher/Kernel64Patcher]")
+        print("mcg29_ - [amfi patching stuff]")
         print("libimobiledevice team - [irecovery]\n" + '\033[0m')
         sys.exit()
     elif args.pwn:
@@ -113,6 +130,11 @@ def main():
         exit(22)
         
     elif args.ipsw:
+        if args.amfi:
+            amfiPatches = True
+            input("Warning: To applying AMFI patches, you need to compile and install https://github.com/Ralph0045/liboffsetfinder64 otherwise it will not work.\nPress enter when you have done this or if you already have it installed.")
+        else:
+            amfiPatches = False
         if args.bootlogo:
             useCustomLogo = True
             logopath = args.bootlogo[0]
@@ -122,7 +144,11 @@ def main():
         if args.dualboot:
             bootOtherOS = True
             sysPartName = args.dualboot[0]
-            bootArgs = f"rd={sysPartName} -v"
+            if args.debug:
+                print("Debugging mode enabled! You can use a serial cable to see more output for debugging issues")
+                bootArgs = f"rd={sysPartName} -v serial=3"
+            else:
+                bootArgs = f"rd={sysPartName} -v"
             if args.bootargs:
                 print(f"\n" + '\033[93m' + "WARNING:" + '\033[0m' + f"'-a' was specified indicating the user wanted to set custom boot-args, but '-d' was also set which currently doesn't support custom boot-args...\nIgnoring '-a' and continuing with '{bootArgs}' as the set boot-args.\n")
         else:
@@ -152,7 +178,7 @@ def main():
         time.sleep(5)
 
         arewelocal = True
-        img4.img4stuff(args.ipsw[1], iosVersion, useCustomLogo, logopath, arewelocal, bootOtherOS, bootArgs)
+        img4.img4stuff(args.ipsw[1], iosVersion, useCustomLogo, logopath, arewelocal, bootOtherOS, bootArgs, amfiPatches)
 
         # now to pwn device
         print("Exploiting device with checkm8")
@@ -166,6 +192,12 @@ def main():
     elif args.ios:
         print('\033[95m' + "PyBoot - A tool for tether booting Checkm8 vulnerable iOS devices by Matty, @mosk_i\n" + '\033[0m')
         print("Current version is: " + tool_version)
+        if args.amfi:
+            amfiPatches = True
+            input("Warning: To applying AMFI patches, you need to compile and install https://github.com/Ralph0045/liboffsetfinder64 otherwise it will not work.\nPress enter when you have done this or if you already have it installed.")
+
+        else:
+            amfiPatches = False
         if args.bootlogo:
             useCustomLogo = True
             logopath = args.bootlogo[0]
@@ -175,7 +207,11 @@ def main():
         if args.dualboot:
             bootOtherOS = True
             sysPartName = args.dualboot[0]
-            bootArgs = f"rd={sysPartName} -v"
+            if args.debug:
+                print("Debugging mode enabled! You can use a serial cable to see more output for debugging issues")
+                bootArgs = f"rd={sysPartName} -v serial=3"
+            else:
+                bootArgs = f"rd={sysPartName} -v"
             print(f"User choose to boot {args.ios[1]} from /dev/{sysPartName}.")
             if args.bootargs:
                 print(f"\n" + '\033[93m' + "WARNING:" + '\033[0m' + f"'-a' was specified indicating the user wanted to set custom boot-args, but '-d' was also set which currently doesn't support custom boot-args...\nIgnoring '-a' and continuing with '{bootArgs}' as the set boot-args.\n")
@@ -198,7 +234,7 @@ def main():
         print("Make sure your device is connected in DFU mode")
         time.sleep(5)
         arewelocal = False
-        img4.img4stuff(args.ios[0], args.ios[1], useCustomLogo, logopath, arewelocal, bootOtherOS, bootArgs)
+        img4.img4stuff(args.ios[0], args.ios[1], useCustomLogo, logopath, arewelocal, bootOtherOS, bootArgs, amfiPatches)
 
         # now to pwn device
         print("Exploiting device with checkm8")
@@ -208,6 +244,7 @@ def main():
         img4.sendImages(args.ios[1], useCustomLogo)
 
         print("Device should be booting!")
+        removeFiles()
         exit(2)
 
     elif args.version:

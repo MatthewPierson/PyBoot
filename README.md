@@ -19,21 +19,22 @@ Feel free to create a pull request if you want to help improve this, or create a
 
 If you wish to donate to me, feel free to do so, but donations are in no way required or expected. My paypal account is matthewpierson01@gmail.com (I can't create a paypal.me link in New Zealand sadly, so you'd need to send donations manually). I make these things for fun and to be useful to the jailbreak community, not for profit, but money is still nice =)
 
-## Current device/iOS support
+## Current device support
 
-iOS support is detirmened by what SEP you currently have installed. For example, if you have iOS 12.3 installed (not futurerestored) with 12.3's SEP, then you can downgrade to any iOS version that 12.3's SEP is compatible with. The list below is based off the latest SEP (13.3.1/12.4.5) but you might be able to downgrade to other versions.
+- iPhone 5s
+- iPhone 6/6+
+- iPhone 6s/6s+
+- iPhone SE (First Gen)
+- iPhone 7/7+
 
-- iPhone 5s - 11.3 -> 12.4.5
-- iPhone 6/6+ - 11.3 -> 12.4.5
-- iPhone 6s/6s+ - 13.0 -> 13.3.1
-- iPhone SE - 13.0 -> 13.3.1
-- iPhone 7/7+ - 13.0 -> 13.3.1
-- iPhone 8/8+ - 13.0 -> 13.3.1 (Untested)
-- iPhone X - 13.0 -> 13.3.1 (Currently broken)
+Currently Unsupported -
+
+- iPhone 8/8+
+- iPhone X
 
 All iPads and iPods are untested, but they should work fine with the corresponding iPhone CPU. Please try and let me know if they work or not.
 
-Currently iPhone X support is broken (kernel panicking 30~ seconds after booting). Keep in mind that even after X support is added, Face-ID will be broken no matter what version you go to (with minor exceptions). Touch-ID works fine on all supported versions.
+A11 support will be fixed/added at a later date as Kairos is currently broken on A11 devices.
 
 ## Usage
 ```
@@ -51,6 +52,8 @@ Options:
   -a, --bootargs 		Custom boot-args, will prompt user to enter, don't enter a value upon running PyBoot (Default is '-v')
   -c, --credits 		Show credits
   -v, --version 		List the version of PyBoot
+  --debug           Add 'serial=3' to boot-args to enable the usage of serial cables for debugging
+  --amfi            Apply AMFI patches to kernel
 
 ```
 
@@ -63,19 +66,14 @@ Options:
 5. Run PyBoot whenever you want to boot the device
 6. Enjoy! 
 
-## Upcoming Features
-
-- More super secret stuff =)
-
 ## Known Issues
 
 - Very high storage usage after downgrading. Can be partially mitigated with a "Reset content and settings" (mobile_obliterator is called after the downgrade by successiondown but sometimes it doesn't run) You could also try [this](https://github.com/MatthewPierson/PyBoot/issues/2) but I haven't tested this so you'd be on your own.
 
-- Some IPSW's won't download from Apple's servers. Can be avoided by either picking a different iOS version or by providing a rootfs dmg in the correct folder
+- Some IPSW's won't download from Apple's servers. Can be avoided by either picking a different iOS version or by providing an IPSW
 
 - ~~Jailbreak's don't work after downgrading. No current method to jailbreak devices downgraded by this method. Checkra1n will give OTA error when installing Cydia (Might be possible to fix) and Unc0ver fails when attempting to find kernel offsets (Probably can't fix)~~ Unc0ver 4.1.0 and higher should work fine for jailbreaking 13.x - 13.3, you still can't use Checkra1n however as that will cause broken WiFi on boot, plus other issues. Electra does work for jailbreaking 11.x, but has some issues that you can fix by following [this tweet from coolstar](https://twitter.com/CStar_OW/status/1233241107661615108) after jailbreaking. 12.x jailbreaks are untested, will edit README with info later.
 
-- Some iOS versions won't boot due to SEP incompatibilities. I have this partially mitigated by including a check for whether SEP is compatible or not, but obviously this is bypassable. 
 
 ## Help, PyBoot is giving me errors!
 
@@ -85,20 +83,24 @@ Options:
 
 ## Credits
 
-Me - For writing this whole thing :)
+[Me](https://twitter.com/mosk_i) - For writing this whole thing :)
 
-axi0mX - [ipwndfu/checkm8](https://github.com/axi0mX/ipwndfu)
+[axi0mX](https://twitter.com/axi0mX) - [ipwndfu/checkm8](https://github.com/axi0mX/ipwndfu)
 
-Thimstar - [img4tool](https://github.com/tihmstar/img4tool), [tsschecker](https://github.com/tihmstar/tsschecker)
+[Thimstar](https://twitter.com/tihmstar) - [img4tool](https://github.com/tihmstar/img4tool), [tsschecker](https://github.com/tihmstar/tsschecker)
 
 realnp - [ibootim](https://github.com/realnp/ibootim)
 
-dayt0n - [kairos](https://github.com/dayt0n/kairos)
+[dayt0n](https://twitter.com/daytonhasty) - [kairos](https://github.com/dayt0n/kairos)
 
-Marco Grassi - [PartialZip](https://github.com/marcograss/partialzip)
+[Marco Grassi](https://twitter.com/marcograss) - [PartialZip](https://github.com/marcograss/partialzip)
 
-Merculous - [ios-python-tools](https://github.com/Merculous/ios-python-tools) (iphonewiki.py for keys)
+[Merculous](https://twitter.com/Vyce_Merculous) - [ios-python-tools](https://github.com/Merculous/ios-python-tools) (iphonewiki.py for keys)
 
 0x7ff - [Eclipsa](https://github.com/0x7ff/eclipsa)
 
 libimobiledevice team - [irecovery](https://github.com/libimobiledevice/libirecovery)
+
+[Ralph0045](https://twitter.com/Ralph0045) - [dtree_patcher](https://github.com/Ralph0045/dtree_patcher)/[Kernel64Patcher](https://github.com/Ralph0045/Kernel64Patcher)
+
+[mcg29_](https://twitter.com/mcg29_) - amfi patching stuff

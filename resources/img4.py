@@ -11,11 +11,41 @@ import requests
 
 from resources.iospythontools import iphonewiki, ipswapi, utils
 
+def patchThing():
+    #Copyright (c) 2020, @mcg29_
+
+    # Code used with permission from @mcg29_
+    # Original code from: https://github.com/dualbootfun/dualbootfun.github.io/blob/master/source/compareFiles.py
+
+	patched = open("resources/kernel.patched", "rb").read()
+	original = open("resources/kernel.raw", "rb").read()
+	lenP = len(patched)
+	lenO = len(original)
+	if lenP != lenO:
+		print("size does not match, can't compare files! exiting...")
+		sys.exit(1)
+	diff = []
+	for i in range(lenO):
+		originalByte = original[i]
+		patchedByte = patched[i]
+		if originalByte != patchedByte:
+			diff.append([hex(i),hex(originalByte), hex(patchedByte)])	
+	diffFile = open('resources/kc.bpatch', 'w+')
+	diffFile.write('#AMFI\n\n')
+	for d in diff:
+		data = str(d[0]) + " " + (str(d[1])) + " " + (str(d[2]))
+		diffFile.write(data+ '\n')
+		print(data)
+
 def signImages():
     print("Signing boot files")
     # time to sign shit
     so = subprocess.Popen(f"./resources/bin/img4tool -c resources/devicetree.img4 -p resources/devicetree.im4p -s resources/shsh.shsh", stdout=subprocess.PIPE, shell=True)
     output = so.stdout.read()
+
+   # if os.path.exists("resources/aopfw.im4p"):
+        #so = subprocess.Popen(f"./resources/bin/img4tool -c resources/aopfw.img4 -p resources/aopfw.im4p -s resources/shsh.shsh", stdout=subprocess.PIPE, shell=True)
+        #output = so.stdout.read()
 
     so = subprocess.Popen(f"./resources/bin/img4tool -c resources/kernel.img4 -p resources/kernel.im4p -s resources/shsh.shsh", stdout=subprocess.PIPE, shell=True)
     output = so.stdout.read()
@@ -84,30 +114,35 @@ def sendImages(iosVersion, useCustomLogo):
         pass
     time.sleep(3)
 
+    # I send the shsh file first just because some devices need a *dummmy* file to be sent before ibss in order to work
+
+    cmd = "bin/irecovery -f shsh.shsh"
+    so = subprocess.Popen(cmd, shell=True)
+    time.sleep(2)
+
     cmd = "bin/irecovery -f ibss.img4"
     so = subprocess.Popen(cmd, shell=True)
     time.sleep(2)
 
     cmd = "bin/irecovery -f ibec.img4"
     so = subprocess.Popen(cmd, shell=True)
-    time.sleep(2)
+    time.sleep(5)
 
-    cmd = 'bin/irecovery -c "bootx"'  # Testing if running bootx after ibss/ibec will fix devicetree issues
+    cmd = 'bin/irecovery -c "bootx"'  # Is needed to prevent Devicetree related issues later on
     so = subprocess.Popen(cmd, shell=True)
     time.sleep(2)
 
-    if useCustomLogo:
-        cmd = f"bin/irecovery -f bootlogo.img4"
-        so = subprocess.Popen(cmd, shell=True)
-        time.sleep(2)
+    cmd = f"bin/irecovery -f bootlogo.img4"
+    so = subprocess.Popen(cmd, shell=True)
+    time.sleep(2)
 
-        cmd = 'bin/irecovery -c "setpicture 0"'
-        so = subprocess.Popen(cmd, shell=True)
-        time.sleep(2)
+    cmd = 'bin/irecovery -c "setpicture 0"'
+    so = subprocess.Popen(cmd, shell=True)
+    time.sleep(2)
 
-        cmd = 'bin/irecovery -c "bgcolor 0 0 0"'
-        so = subprocess.Popen(cmd, shell=True)
-        time.sleep(2)
+    cmd = 'bin/irecovery -c "bgcolor 0 0 0"'
+    so = subprocess.Popen(cmd, shell=True)
+    time.sleep(2)
 
     cmd = "bin/irecovery -f devicetree.img4"
     so = subprocess.Popen(cmd, shell=True)
@@ -116,6 +151,16 @@ def sendImages(iosVersion, useCustomLogo):
     cmd = 'bin/irecovery -c "devicetree"'
     so = subprocess.Popen(cmd, shell=True)
     time.sleep(2)
+
+    #if '13.' in iosVersion:  
+        
+     #   cmd = "bin/irecovery -f aopfw.img4"
+      #  so = subprocess.Popen(cmd, shell=True)
+       # time.sleep(2)
+
+        #cmd = 'bin/irecovery -c "firmware"'
+        #so = subprocess.Popen(cmd, shell=True)
+        #time.sleep(2)
 
     if not '11.' in iosVersion:  # 11.x and lower don't need trustcache sent to boot =)
 
@@ -138,7 +183,8 @@ def sendImages(iosVersion, useCustomLogo):
     os.chdir("../")
 
 
-def img4stuff(deviceModel, iOSVersion, useCustomLogo, bootlogoPath, areWeLocal, bootOtherOS, bootArgs):
+def img4stuff(deviceModel, iOSVersion, useCustomLogo, bootlogoPath, areWeLocal, bootOtherOS, bootArgs, amfiPatches):
+
     api = ipswapi.APIParser(deviceModel, iOSVersion)
 
     print(f"Checking theiphonewiki for {iOSVersion} keys...")
@@ -224,7 +270,7 @@ def img4stuff(deviceModel, iOSVersion, useCustomLogo, bootlogoPath, areWeLocal, 
             print("Invalid input...\nExiting...")
             exit(0)
     print("Getting SHSH for signing images")
-    so = subprocess.Popen(f"./resources/bin/tsschecker -d iPhone6,2 -e 12326262 -l -s", stdout=subprocess.PIPE, shell=True)
+    so = subprocess.Popen(f"./resources/bin/tsschecker -d iPhone6,2 -e 85888280a402e -l -s", stdout=subprocess.PIPE, shell=True)
     output = so.stdout.read()
     dir_name = os.getcwd()
     test = os.listdir(dir_name)
@@ -243,8 +289,8 @@ def img4stuff(deviceModel, iOSVersion, useCustomLogo, bootlogoPath, areWeLocal, 
         print(f"Downloading and patching {iOSVersion}'s iBSS/iBEC")
 
         api.downloadFileFromArchive(f"Firmware/dfu/{iBECName}", "resources/ibec.im4p")
-
         api.downloadFileFromArchive(f"Firmware/dfu/{iBSSName}", "resources/ibss.im4p")
+        test = False
 
     else:
         # We need to move the correct iBSS/iBEC from IPSW/ to resources/
@@ -292,32 +338,57 @@ def img4stuff(deviceModel, iOSVersion, useCustomLogo, bootlogoPath, areWeLocal, 
         print("If you do not reboot the device into DFU mode, PyBoot will fail to send the needed boot components")
         print("Waiting for user to press enter...")
         input()
-        
+
+    patcher = "kairos" # Just allows me to change what boot image patcher I use with ease (mainly for A11 tests)
+    if test:
+        print("Fuck this")
+        iBSSIV = "b4cb3336374505028c995acb9a565c45"
+        iBSSKey = "877ce08c24e42ecf582d60719648ef4ef915809e1b0ccff518f5db3004a806ce"
+        iBECIV = "8358a6ae2d477357a2f1eabc0287ddcb"
+        iBECKey = "72fb077f67f61141cb4224ee0ed6e9a43578c13922937fc91d23ed4949862132"
     so = subprocess.Popen(f"./resources/bin/img4tool -e -o resources/ibss.raw --iv {iBSSIV} --key {iBSSKey} resources/ibss.im4p", stdout=subprocess.PIPE, shell=True)
     output = so.stdout.read()    
     if useCustomLogo:
         if bootOtherOS:
-            so = subprocess.Popen(f'./resources/bin/kairos resources/ibss.raw resources/ibss.pwn -b "{bootArgs}"', stdout=subprocess.PIPE, shell=True)
+            so = subprocess.Popen(f'./resources/bin/{patcher} resources/ibss.raw resources/ibss.pwn -b "{bootArgs}"', stdout=subprocess.PIPE, shell=True)
             output = so.stdout.read()
         else:
-            so = subprocess.Popen(f'./resources/bin/kairos resources/ibss.raw resources/ibss.pwn', stdout=subprocess.PIPE, shell=True)
+            so = subprocess.Popen(f'./resources/bin/{patcher} resources/ibss.raw resources/ibss.pwn', stdout=subprocess.PIPE, shell=True)
             output = so.stdout.read()
     else:
-        so = subprocess.Popen(f'./resources/bin/kairos resources/ibss.raw resources/ibss.pwn -b "{bootArgs}"', stdout=subprocess.PIPE, shell=True)
+        so = subprocess.Popen(f'./resources/bin/{patcher} resources/ibss.raw resources/ibss.pwn -b "{bootArgs}"', stdout=subprocess.PIPE, shell=True)
         output = so.stdout.read()
 
     so = subprocess.Popen(f"./resources/bin/img4tool -e -o resources/ibec.raw --iv {iBECIV} --key {iBECKey} resources/ibec.im4p", stdout=subprocess.PIPE, shell=True)
     output = so.stdout.read()
     if useCustomLogo:
         if bootOtherOS:
-            so = subprocess.Popen(f'./resources/bin/kairos resources/ibec.raw resources/ibec.pwn -b "{bootArgs}"', stdout=subprocess.PIPE, shell=True)
+            so = subprocess.Popen(f'./resources/bin/{patcher} resources/ibec.raw resources/ibec.pwn -b "{bootArgs}"', stdout=subprocess.PIPE, shell=True)
             output = so.stdout.read()
         else:
-            so = subprocess.Popen(f'./resources/bin/kairos resources/ibec.raw resources/ibec.pwn', stdout=subprocess.PIPE, shell=True)
+            so = subprocess.Popen(f'./resources/bin/{patcher} resources/ibec.raw resources/ibec.pwn', stdout=subprocess.PIPE, shell=True)
             output = so.stdout.read()
     else:
-        so = subprocess.Popen(f'./resources/bin/kairos resources/ibec.raw resources/ibec.pwn -b "{bootArgs}"', stdout=subprocess.PIPE, shell=True)
+        so = subprocess.Popen(f'./resources/bin/{patcher} resources/ibec.raw resources/ibec.pwn -b "{bootArgs}"', stdout=subprocess.PIPE, shell=True)
         output = so.stdout.read()
+    if bootOtherOS and "13." in iOSVersion:
+        # Excuse the long byte strings, just want to be sure that we patch the correct thing :)
+        bootpartitionString = b"\x30\x00\x2F\x53\x79\x73\x74\x65\x6D\x2F\x4C\x69\x62\x72\x61\x72\x79\x2F\x43\x61\x63\x68\x65\x73\x2F\x63\x6F\x6D\x2E\x61\x70\x70\x6C\x65\x2E\x6B\x65\x72\x6E\x65\x6C\x63\x61\x63\x68\x65\x73\x2F\x6B\x65\x72\x6E\x65\x6C\x63\x61\x63\x68\x65"
+        bootpartitionPatch = b"\x35"
+        if os.path.isfile("resources/ibec.pwn"):
+            print("Patching boot-partition from 0 to 5")
+            with open("resources/ibec.pwn", "r+b") as fh:
+                file = fh.read()
+                try:
+                    offset = hex(file.index(bootpartitionString))  # getting offset for start of string
+                    offset = int(offset, 16)
+                    fh.seek(offset, 0)
+                    fh.write(bootpartitionPatch)  # writing 5 so we can boot the system partition
+                    fh.close()
+                    print("boot-partition patch complete")
+                except:
+                    print("iBEC patching failed!")
+                    exit(2)
 
     so = subprocess.Popen(f"./resources/bin/img4tool -c resources/ibec.patched -t ibec resources/ibec.pwn", stdout=subprocess.PIPE, shell=True)
     output = so.stdout.read()
@@ -348,7 +419,19 @@ def img4stuff(deviceModel, iOSVersion, useCustomLogo, bootlogoPath, areWeLocal, 
             print("Please provide a .png file, other image types are not supported")
             exit(2)
     else:
-        pass
+        if (os.path.exists("resources/bootlogo.png")):
+            so = subprocess.Popen(f"./resources/bin/ibootim resources/bootlogo.png resources/bootlogo.ibootim", stdout=subprocess.PIPE, shell=True)  # Thanks to realnp for ibootim!
+            output = so.stdout.read()
+            # now create im4p
+            so = subprocess.Popen(f"./resources/bin/img4tool -c resources/bootlogo.im4p -t logo resources/bootlogo.ibootim", stdout=subprocess.PIPE, shell=True)
+            output = so.stdout.read()
+            # Add signature from shsh
+            so = subprocess.Popen(f"./resources/bin/img4tool -c resources/bootlogo.img4 -p resources/bootlogo.im4p -s resources/shsh.shsh", stdout=subprocess.PIPE, shell=True)
+            output = so.stdout.read()
+            bootlogoPath = "resources/bootlogo.img4"
+        else:
+            print("Please either add your own image to ./resources/bootlogo.png or redownload the one that comes with PyBoot")
+            exit(0)
     # iBSS/iBEC stuff is done, we now need to get devicetree, trustcache and kernel
     line_number = 0
     with open("./resources/manifest.plist", mode="rt") as read_plist:
@@ -374,11 +457,34 @@ def img4stuff(deviceModel, iOSVersion, useCustomLogo, bootlogoPath, areWeLocal, 
             shutil.move(f"IPSW/{kernelname}", "resources/kernel.im4p")
         else:
             sys.exit("ERROR: Couldn't find local kernelcache")
+    if amfiPatches:
+        print("Applying AMFI patches to kernel (Thanks to Ralph and mcg29_)")
+        so = subprocess.Popen(f"./resources/bin/img4 -i resources/kernel.im4p -o resources/kernel.raw", stdout=subprocess.PIPE, shell=True)
+        output = so.stdout.read()
+        time.sleep(5)
+        if os.path.exists("resources/kernel.raw"):
+            print("Saved raw kernel to 'resources/kernel.raw'")
+            so = subprocess.Popen(f"./resources/bin/Kernel64Patcher resources/kernel.raw resources/kernel.patched -a", stdout=subprocess.PIPE, shell=True)
+            output = so.stdout.read()
+            patchThing()
+            so = subprocess.Popen(f"./resources/bin/img4tool -e -s resources/shsh.shsh -m resources/IM4M", stdout=subprocess.PIPE, shell=True)
+            output = so.stdout.read()
+            print("Patched AMFI from kernel")
+            so = subprocess.Popen(f"./resources/bin/img4 -i resources/kernel.im4p -o resources/kernel.img4 -M resources/IM4M -T krnl -P resources/kc.bpatch", stdout=subprocess.PIPE, shell=True)
+            output = so.stdout.read()
+            print("Finished patching kernel!\nContinuing with PyBoot...\n")
+        else:
+            print("Failed to extract raw kernel, continuing without AMFI kernel patches...")
+
     devicetreename = f"DeviceTree.{iBSSName[5:-13]}ap.im4p"
     if deviceModel == "iPhone6,2":
         devicetreename = "DeviceTree.n53ap.im4p"
     elif deviceModel == "iPhone6,1":
         devicetreename = "DeviceTree.n51ap.im4p"
+    elif deviceModel == "iPad7,5":
+        devicetreename = "DeviceTree.j71bap.im4p"
+    elif deviceModel == "iPad7,6":
+        devicetreename = "DeviceTree.j72bap.im4p"
     if areWeLocal == False:
 
         print(f"Downloading {iOSVersion}'s DeviceTree")
@@ -392,6 +498,21 @@ def img4stuff(deviceModel, iOSVersion, useCustomLogo, bootlogoPath, areWeLocal, 
             shutil.move(f"IPSW/Firmware/all_flash/{devicetreename}", "resources/devicetree.im4p")
         else:
             sys.exit("ERROR: Couldn't find local devicetree")
+
+    if bootOtherOS and "13." in iOSVersion:
+
+        #api.downloadFileFromArchive(f"Firmware/AOP/aopfw-s8000aop.im4p", "resources/aopfw.im4p")
+
+        print("Patching Devicetree to allow for new Data partition to be mounted (13.x Only)...")
+        # Unpack devicetree so Ralph's patcher will work
+        so = subprocess.Popen(f"./resources/bin/img4tool -e -o resources/devicetree.raw resources/devicetree.im4p", stdout=subprocess.PIPE, shell=True)
+        output = so.stdout.read()
+        # Patch it
+        so = subprocess.Popen(f"./resources/bin/dtree_patcher resources/devicetree.raw resources/devicetree.patched -d", stdout=subprocess.PIPE, shell=True)
+        output = so.stdout.read()
+        # Repack it to im4p
+        so = subprocess.Popen(f"./resources/bin/img4tool -c resources/devicetree.im4p -t dtre resources/devicetree.patched", stdout=subprocess.PIPE, shell=True)
+        output = so.stdout.read()
     if areWeLocal == False:
         so = check_output(f"./resources/bin/pzb list {ipswurl}", shell=True)  # Need to check the downgraded IPSW to get the rootfs trustcache for booting
         so = str(so)
@@ -450,5 +571,4 @@ def img4stuff(deviceModel, iOSVersion, useCustomLogo, bootlogoPath, areWeLocal, 
 
     # Can add a verification for after the patching to make sure it was applied correctly and in the right place just in case
     patchFiles(iOSVersion)
-    print("Signing boot files")
     signImages()
