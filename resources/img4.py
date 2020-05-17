@@ -340,11 +340,6 @@ def img4stuff(deviceModel, iOSVersion, useCustomLogo, bootlogoPath, areWeLocal, 
         input()
 
     patcher = "kairos" # Just allows me to change what boot image patcher I use with ease (mainly for A11 tests)
-    if test:
-        iBSSIV = "b4cb3336374505028c995acb9a565c45"
-        iBSSKey = "877ce08c24e42ecf582d60719648ef4ef915809e1b0ccff518f5db3004a806ce"
-        iBECIV = "8358a6ae2d477357a2f1eabc0287ddcb"
-        iBECKey = "72fb077f67f61141cb4224ee0ed6e9a43578c13922937fc91d23ed4949862132"
     so = subprocess.Popen(f"./resources/bin/img4tool -e -o resources/ibss.raw --iv {iBSSIV} --key {iBSSKey} resources/ibss.im4p", stdout=subprocess.PIPE, shell=True)
     output = so.stdout.read()    
     if useCustomLogo:
