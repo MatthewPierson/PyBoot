@@ -341,7 +341,6 @@ def img4stuff(deviceModel, iOSVersion, useCustomLogo, bootlogoPath, areWeLocal, 
 
     patcher = "kairos" # Just allows me to change what boot image patcher I use with ease (mainly for A11 tests)
     if test:
-        print("Fuck this")
         iBSSIV = "b4cb3336374505028c995acb9a565c45"
         iBSSKey = "877ce08c24e42ecf582d60719648ef4ef915809e1b0ccff518f5db3004a806ce"
         iBECIV = "8358a6ae2d477357a2f1eabc0287ddcb"
