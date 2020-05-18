@@ -89,6 +89,10 @@ Options:
 
 [Thimstar](https://twitter.com/tihmstar) - [img4tool](https://github.com/tihmstar/img4tool), [tsschecker](https://github.com/tihmstar/tsschecker)
 
+[Linus Henze](https://twitter.com/LinusHenze) - [sigcheckremover](https://github.com/LinusHenze/ipwndfu_public)
+
+[akayn](https://twitter.com/_akayn) - [A11 sigcheckremover support](https://github.com/akayn/ipwndfu)
+
 realnp - [ibootim](https://github.com/realnp/ibootim)
 
 [dayt0n](https://twitter.com/daytonhasty) - [kairos](https://github.com/dayt0n/kairos)
