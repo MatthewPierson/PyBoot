@@ -131,7 +131,7 @@ def sendImages(iosVersion, useCustomLogo):
     so = subprocess.Popen(cmd, shell=True)
     time.sleep(5)
 
-    if "CPID:8015" in serial_number:
+    if "CPID:8015" or "CPID:8010" in serial_number:
         cmd = "bin/irecovery -f ibec.img4"
         so = subprocess.Popen(cmd, shell=True)
         time.sleep(3)
