@@ -6,6 +6,7 @@ import sys
 import time
 from subprocess import check_output
 from resources.pwn import pwndfumode, decryptKBAG, pwndfumodeKeys
+from resources.ipwndfu import dfu
 
 import requests
 
@@ -107,6 +108,8 @@ def patchFiles(iOSVersion):
 
 
 def sendImages(iosVersion, useCustomLogo):
+    device = dfu.acquire_device()
+    serial_number = device.serial_number
     print("Sending boot files to the device and booting")
     if os.path.exists("resources"):
         os.chdir("resources")
@@ -127,6 +130,15 @@ def sendImages(iosVersion, useCustomLogo):
     cmd = "bin/irecovery -f ibec.img4"
     so = subprocess.Popen(cmd, shell=True)
     time.sleep(5)
+
+    if "CPID:8015" in serial_number:
+        cmd = "bin/irecovery -f ibec.img4"
+        so = subprocess.Popen(cmd, shell=True)
+        time.sleep(3)
+
+        cmd = "bin/irecovery -c go"
+        so = subprocess.Popen(cmd, shell=True)
+        time.sleep(5)
 
     cmd = 'bin/irecovery -c "bootx"'  # Is needed to prevent Devicetree related issues later on
     so = subprocess.Popen(cmd, shell=True)
@@ -339,7 +351,7 @@ def img4stuff(deviceModel, iOSVersion, useCustomLogo, bootlogoPath, areWeLocal, 
         print("Waiting for user to press enter...")
         input()
 
-    patcher = "kairos" # Just allows me to change what boot image patcher I use with ease (mainly for A11 tests)
+    patcher = "iBoot64Patcher" # Just allows me to change what boot image patcher I use with ease (mainly for A11 tests)
     so = subprocess.Popen(f"./resources/bin/img4tool -e -o resources/ibss.raw --iv {iBSSIV} --key {iBSSKey} resources/ibss.im4p", stdout=subprocess.PIPE, shell=True)
     output = so.stdout.read()    
     if useCustomLogo:
