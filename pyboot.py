@@ -7,12 +7,15 @@ import sys
 try:
 
     import argparse
+    import requests
     import os
     import platform
     import plistlib
+    import stat
     import re
     import shutil
     import time
+    from zipfile import ZipFile
     from argparse import RawTextHelpFormatter
     from resources import img4, pwn, ipsw
     from resources.iospythontools import iphonewiki, ipswapi, utils
@@ -98,6 +101,8 @@ def main():
     parser.add_argument("-a", "--bootargs", help="Custom boot-args, will prompt user to enter, don't enter a value upon running PyBoot (Default is '-v')", action='store_true')
     parser.add_argument("-v", "--version", help="List the version of the tool", action="store_true")
     parser.add_argument("-c", "--credits", help="List credits", action="store_true")
+    parser.add_argument("-f", "--fix", help="Fix img4tool/irecovery related issues", action="store_true")
+
 
     if platform.system() == 'Darwin':  # If not MacOS then exit basically
         pass
@@ -109,7 +114,240 @@ def main():
         sys.exit("Wtf are you even running this on?")
 
     args = parser.parse_args()
+    if args.fix:
 
+        # We need to prompt for what the user needs to fix
+
+        response = input("What do you need to fix?\n1. img4tool\n2. irecovery\n3. Both\n(1/2/3)\n")
+        if response == "1":
+            print("Downloading latest img4tool release from Tihmstar's github...")
+            
+            if os.path.exists("img4tool.zip"):
+                os.remove("img4tool.zip")
+
+            url = "https://github.com/tihmstar/img4tool/releases/download/182/buildroot_macos-latest.zip"
+            r = requests.get(url, allow_redirects=True)
+
+            open('img4tool.zip', 'wb').write(r.content)
+
+            if os.path.exists("img4tool"):
+                shutil.rmtree("img4tool")
+                os.mkdir("img4tool")
+            else:
+                os.mkdir("img4tool")
+            
+            shutil.move("img4tool.zip", "img4tool/img4tool.zip")
+            os.chdir("img4tool")
+
+            with ZipFile('img4tool.zip', 'r') as zipObj:
+                
+                zipObj.extractall()
+            
+            os.chdir("../")
+            os.remove("./resources/bin/img4tool")
+            shutil.move("img4tool/buildroot_macos-latest/usr/local/bin/img4tool", "resources/bin/img4tool")
+
+            st = os.stat('resources/bin/img4tool')
+            os.chmod('resources/bin/img4tool', st.st_mode | stat.S_IEXEC)
+
+            if os.path.exists("/usr/local/include/img4tool"):
+                shutil.rmtree("/usr/local/include/img4tool")
+
+            shutil.move("img4tool/buildroot_macos-latest/usr/local/include/img4tool", "/usr/local/include/img4tool")
+
+            if os.path.exists("/usr/local/lib/libimg4tool.a"):
+                os.remove("/usr/local/lib/libimg4tool.a")
+            
+            shutil.move("img4tool/buildroot_macos-latest/usr/local/lib/libimg4tool.a", "/usr/local/lib/libimg4tool.a")
+
+            if os.path.exists("/usr/local/lib/libimg4tool.la"):
+                os.remove("/usr/local/lib/libimg4tool.la")
+            
+            shutil.move("img4tool/buildroot_macos-latest/usr/local/lib/libimg4tool.la", "/usr/local/lib/libimg4tool.la")
+
+            if os.path.exists("/usr/local/lib/pkgconfig/libimg4tool.pc"):
+                os.remove("/usr/local/lib/pkgconfig/libimg4tool.pc")
+            
+            shutil.move("img4tool/buildroot_macos-latest/usr/local/lib/pkgconfig/libimg4tool.pc", "/usr/local/lib/pkgconfig/libimg4tool.pc")
+
+            print("img4tool has been installed, you can now use PyBoot normally!")
+        elif response == "2":
+
+            if os.path.exists("/usr/local/bin/brew"):
+                print("Found brew, installing libirecovery now")
+            else:
+                print("Error: Could not find brew!")
+                choice = input("Do you want to install brew now to install irecovery? (y/n)")
+                if choice == "y" or choice == "Y":
+                    cmd = '/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"'
+                    so = subprocess.Popen(cmd, shell=True)
+                    print(so)
+                else:
+                    print("You will need to manually install brew from brew.sh to install irecovery. Exiting...")
+                    exit(0)
+            cmd = 'brew install --HEAD libimobiledevice'
+            subprocess.run(cmd, shell=True, check=True)
+
+            cmd = 'brew link --overwrite libimobiledevice'
+            subprocess.run(cmd, shell=True, check=True)
+
+            print("Downloading latest irecovery source from libimobiledevice's github...")
+
+            url = "https://github.com/libimobiledevice/libirecovery/archive/master.zip"
+            r = requests.get(url, allow_redirects=True)
+
+            open('irecovery.zip', 'wb').write(r.content)
+
+            if os.path.exists("irecovery"):
+                shutil.rmtree("irecovery")
+                os.mkdir("irecovery")
+            else:
+                os.mkdir("irecovery")
+        
+            shutil.move("irecovery.zip", "irecovery/irecovery.zip")
+            os.chdir("irecovery")
+
+            with ZipFile('irecovery.zip', 'r') as zipObj:
+                
+                zipObj.extractall()
+            
+            os.chdir("libirecovery-master")
+
+            st = os.stat('autogen.sh')
+            os.chmod('autogen.sh', st.st_mode | stat.S_IEXEC)
+
+            subprocess.run("./autogen.sh", shell=True, check=True)
+
+            subprocess.run("make", shell=True, check=True)
+
+            subprocess.run("sudo make install", shell=True, check=True)
+
+            if os.path.exists("/usr/local/bin/irecovery"):
+                os.remove("../../resources/bin/irecovery")
+                shutil.copy("/usr/local/bin/irecovery", "../../resources/bin/irecovery")
+                st = os.stat('../../resources/bin/irecovery')
+                os.chmod('../../resources/bin/irecovery', st.st_mode | stat.S_IEXEC)
+            else:
+                print("Something went wrong while compiling irecovery, please open an issue on Github with a screenshot of the above output. Exiting...")
+                exit(0)
+
+            print("irecovery has been installed, you can now use PyBoot normally!")
+
+        elif response == "3":
+            print("Downloading latest img4tool release from Tihmstar's github...")
+            
+            if os.path.exists("img4tool.zip"):
+                os.remove("img4tool.zip")
+
+            url = "https://github.com/tihmstar/img4tool/releases/download/182/buildroot_macos-latest.zip"
+            r = requests.get(url, allow_redirects=True)
+
+            open('img4tool.zip', 'wb').write(r.content)
+
+            if os.path.exists("img4tool"):
+                shutil.rmtree("img4tool")
+                os.mkdir("img4tool")
+            else:
+                os.mkdir("img4tool")
+            
+            shutil.move("img4tool.zip", "img4tool/img4tool.zip")
+            os.chdir("img4tool")
+
+            with ZipFile('img4tool.zip', 'r') as zipObj:
+                
+                zipObj.extractall()
+            
+            os.chdir("../")
+            os.remove("./resources/bin/img4tool")
+            shutil.move("img4tool/buildroot_macos-latest/usr/local/bin/img4tool", "resources/bin/img4tool")
+
+            st = os.stat('resources/bin/img4tool')
+            os.chmod('resources/bin/img4tool', st.st_mode | stat.S_IEXEC)
+
+            if os.path.exists("/usr/local/include/img4tool"):
+                shutil.rmtree("/usr/local/include/img4tool")
+
+            shutil.move("img4tool/buildroot_macos-latest/usr/local/include/img4tool", "/usr/local/include/img4tool")
+
+            if os.path.exists("/usr/local/lib/libimg4tool.a"):
+                os.remove("/usr/local/lib/libimg4tool.a")
+            
+            shutil.move("img4tool/buildroot_macos-latest/usr/local/lib/libimg4tool.a", "/usr/local/lib/libimg4tool.a")
+
+            if os.path.exists("/usr/local/lib/libimg4tool.la"):
+                os.remove("/usr/local/lib/libimg4tool.la")
+            
+            shutil.move("img4tool/buildroot_macos-latest/usr/local/lib/libimg4tool.la", "/usr/local/lib/libimg4tool.la")
+
+            if os.path.exists("/usr/local/lib/pkgconfig/libimg4tool.pc"):
+                os.remove("/usr/local/lib/pkgconfig/libimg4tool.pc")
+            
+            shutil.move("img4tool/buildroot_macos-latest/usr/local/lib/pkgconfig/libimg4tool.pc", "/usr/local/lib/pkgconfig/libimg4tool.pc")
+            
+            
+            if os.path.exists("/usr/local/bin/brew"):
+                print("Found brew, installing libirecovery now")
+            else:
+                print("Error: Could not find brew!")
+                choice = input("Do you want to install brew now to install irecovery? (y/n)")
+                if choice == "y" or choice == "Y":
+                    cmd = '/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"'
+                    so = subprocess.Popen(cmd, shell=True)
+                    print(so)
+                else:
+                    print("You will need to manually install brew from brew.sh to install irecovery. Exiting...")
+                    exit(0)
+            cmd = 'brew install --HEAD libimobiledevice'
+            subprocess.run(cmd, shell=True, check=True)
+
+            cmd = 'brew link --overwrite libimobiledevice'
+            subprocess.run(cmd, shell=True, check=True)
+
+            print("Downloading latest irecovery source from libimobiledevice's github...")
+
+            url = "https://github.com/libimobiledevice/libirecovery/archive/master.zip"
+            r = requests.get(url, allow_redirects=True)
+
+            open('irecovery.zip', 'wb').write(r.content)
+
+            if os.path.exists("irecovery"):
+                shutil.rmtree("irecovery")
+                os.mkdir("irecovery")
+            else:
+                os.mkdir("irecovery")
+        
+            shutil.move("irecovery.zip", "irecovery/irecovery.zip")
+            os.chdir("irecovery")
+
+            with ZipFile('irecovery.zip', 'r') as zipObj:
+                
+                zipObj.extractall()
+            
+            os.chdir("libirecovery-master")
+
+            st = os.stat('autogen.sh')
+            os.chmod('autogen.sh', st.st_mode | stat.S_IEXEC)
+
+            subprocess.run("./autogen.sh", shell=True, check=True)
+
+            subprocess.run("make", shell=True, check=True)
+            
+            subprocess.run("sudo make install", shell=True, check=True)
+
+            if os.path.exists("/usr/local/bin/irecovery"):
+                os.remove("../../resources/bin/irecovery")
+                shutil.copy("/usr/local/bin/irecovery", "../../resources/bin/irecovery")
+                st = os.stat('../../resources/bin/irecovery')
+                os.chmod('../../resources/bin/irecovery', st.st_mode | stat.S_IEXEC)
+            else:
+                print("Something went wrong while compiling irecovery, please open an issue on Github with a screenshot of the above output. Exiting...")
+                exit(0)
+
+            print("irecovery has been installed, you can now use PyBoot normally!")
+        else:
+            print("Unrecognized input, exiting...")
+            exit(0)
+        exit(0)
     if args.credits:
         print('\033[95m' + "\nPyBoot Created by: Matty - @mosk_i\n" + '\033[0m')
         print('\033[94m' + "Other Tools by -\n" + '\033[0m')
