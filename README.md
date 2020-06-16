@@ -25,16 +25,16 @@ If you wish to donate to me, feel free to do so, but donations are in no way req
 - iPhone 6/6+
 - iPhone 6s/6s+
 - iPhone SE (First Gen)
+
+## Semi-Supported Devices -
+
 - iPhone 7/7+
-
-Currently Unsupported -
-
 - iPhone 8/8+
 - iPhone X
 
-All iPads and iPods are untested, but they should work fine with the corresponding iPhone CPU. Please try and let me know if they work or not.
+A10/A11 devices may have some issues once booted, support is tentative currently
 
-A11 support will be fixed/added at a later date as Kairos is currently broken on A11 devices.
+All iPads and iPods are untested, but they should work fine with the corresponding iPhone CPU. Please try and let me know if they work or not.
 
 ## Usage
 ```
@@ -79,7 +79,7 @@ Options:
 
 - First make sure you have ran "pip3 install -r requirements.txt" before doing anything
 
-- If you are getting irecovery related errors, download [this bash script](https://gist.github.com/MatthewPierson/3838e6192120f27b195b2f284f5737c6) and run it 
+- If you are getting irecovery or img4tool related errors, download [this bash script](https://gist.github.com/MatthewPierson/3838e6192120f27b195b2f284f5737c6) and run it 
 
 ## Credits
 
@@ -87,7 +87,7 @@ Options:
 
 [axi0mX](https://twitter.com/axi0mX) - [ipwndfu/checkm8](https://github.com/axi0mX/ipwndfu)
 
-[Thimstar](https://twitter.com/tihmstar) - [img4tool](https://github.com/tihmstar/img4tool), [tsschecker](https://github.com/tihmstar/tsschecker)
+[Thimstar](https://twitter.com/tihmstar) - [img4tool](https://github.com/tihmstar/img4tool), [tsschecker](https://github.com/tihmstar/tsschecker), [iBoot64Patcher](https://github.com/tihmstar/iBoot64Patcher)
 
 [Linus Henze](https://twitter.com/LinusHenze) - [sigcheckremover](https://github.com/LinusHenze/ipwndfu_public)
 

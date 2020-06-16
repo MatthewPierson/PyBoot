@@ -53,6 +53,8 @@ def removeFiles():
         'resources/ibec.patched',
         'resources/ibss.im4p',
         'resources/ibss.img4',
+        'resources/isp.im4p',
+        'resources/isp.img4',
         'resources/ibss.raw',
         'resources/ibss.pwn',
         'resources/ibss.patched',
@@ -72,7 +74,11 @@ def removeFiles():
         'resources/bootlogo.ibootim',
         'resources/bootlogo.img4',
         'resources/aopfw.img4',
-        'resources/aopfw.im4p'
+        'resources/aopfw.im4p',
+        'resources/touch.im4p',
+        'resources/touch.img4',
+        'resources/callan.im4p',
+        'resources/callan.img4',
     ]
 
     for item in removeFiles: # removes files from above list
@@ -80,7 +86,7 @@ def removeFiles():
             os.remove(item)
     return
 
-tool_version = '\033[92m' + "Beta 0.6" + '\033[0m'
+tool_version = '\033[92m' + "Beta 0.7" + '\033[0m'
 
 
 def main():
@@ -384,9 +390,9 @@ def main():
             sysPartName = args.dualboot[0]
             if args.debug:
                 print("Debugging mode enabled! You can use a serial cable to see more output for debugging issues")
-                bootArgs = f"rd={sysPartName} -v serial=3"
+                bootArgs = f"-v serial=3 rd={sysPartName}"
             else:
-                bootArgs = f"rd={sysPartName} -v"
+                bootArgs = f"-v rd={sysPartName}"
             if args.bootargs:
                 print(f"\n" + '\033[93m' + "WARNING:" + '\033[0m' + f"'-a' was specified indicating the user wanted to set custom boot-args, but '-d' was also set which currently doesn't support custom boot-args...\nIgnoring '-a' and continuing with '{bootArgs}' as the set boot-args.\n")
         else:
@@ -422,8 +428,13 @@ def main():
         print("Exploiting device with checkm8")
         pwn.pwndfumode()
 
+        if args.ios[1] == "iPhone10,1" or args.ios[1] == "iPhone10,2" or args.ios[1] == "iPhone10,3" or args.ios[1] == "iPhone10,4" or args.ios[1] == "iPhone10,5" or args.ios[1] == "iPhone10,6":
+            A10A11Check = True
+        else:
+            A10A11Check = False 
+
         # Send files to device and boot =)
-        img4.sendImages(iosVersion, useCustomLogo)
+        img4.sendImages(iosVersion, useCustomLogo, A10A11Check)
 
         print("Device should be booting!")
         exit(0)
@@ -447,9 +458,9 @@ def main():
             sysPartName = args.dualboot[0]
             if args.debug:
                 print("Debugging mode enabled! You can use a serial cable to see more output for debugging issues")
-                bootArgs = f"rd={sysPartName} -v serial=3"
+                bootArgs = f"-v serial=3 rd={sysPartName}"
             else:
-                bootArgs = f"rd={sysPartName} -v"
+                bootArgs = f"-v rd={sysPartName}"
             print(f"User choose to boot {args.ios[1]} from /dev/{sysPartName}.")
             if args.bootargs:
                 print(f"\n" + '\033[93m' + "WARNING:" + '\033[0m' + f"'-a' was specified indicating the user wanted to set custom boot-args, but '-d' was also set which currently doesn't support custom boot-args...\nIgnoring '-a' and continuing with '{bootArgs}' as the set boot-args.\n")
@@ -478,8 +489,15 @@ def main():
         print("Exploiting device with checkm8")
         pwn.pwndfumode()
 
+        if args.ios[0] == "iPhone10,1" or args.ios[0] == "iPhone10,2" or args.ios[0] == "iPhone10,3" or args.ios[0] == "iPhone10,4" or args.ios[0] == "iPhone10,5" or args.ios[0] == "iPhone10,6" or args.ios[0] == "iPhone9,1" or args.ios[0] == "iPhone9,2" or args.ios[0] == "iPhone9,3" or args.ios[0] == "iPhone9,4":
+            A10A11Check = True
+            print("Your device has an A10/A11 CPU, you may run into some issues once booted. You have been warned...")
+            time.sleep(3)
+        else:
+            A10A11Check = False 
+
         # Send files to device and boot =)
-        img4.sendImages(args.ios[1], useCustomLogo)
+        img4.sendImages(args.ios[1], useCustomLogo, A10A11Check)
 
         print("Device should be booting!")
         removeFiles()

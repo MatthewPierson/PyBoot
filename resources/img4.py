@@ -37,21 +37,31 @@ def patchThing():
 		diffFile.write(data+ '\n')
 		print(data)
 
-def signImages():
+def signImages(A10A11Check):
     print("Signing boot files")
-    # time to sign shit
+
     so = subprocess.Popen(f"./resources/bin/img4tool -c resources/devicetree.img4 -p resources/devicetree.im4p -s resources/shsh.shsh", stdout=subprocess.PIPE, shell=True)
     output = so.stdout.read()
-
-   # if os.path.exists("resources/aopfw.im4p"):
-        #so = subprocess.Popen(f"./resources/bin/img4tool -c resources/aopfw.img4 -p resources/aopfw.im4p -s resources/shsh.shsh", stdout=subprocess.PIPE, shell=True)
-        #output = so.stdout.read()
 
     so = subprocess.Popen(f"./resources/bin/img4tool -c resources/kernel.img4 -p resources/kernel.im4p -s resources/shsh.shsh", stdout=subprocess.PIPE, shell=True)
     output = so.stdout.read()
 
     so = subprocess.Popen(f"./resources/bin/img4tool -c resources/trustcache.img4 -p resources/trustcache.im4p -s resources/shsh.shsh", stdout=subprocess.PIPE, shell=True)
     output = so.stdout.read()
+
+    if A10A11Check:
+
+        so = subprocess.Popen(f"./resources/bin/img4tool -c resources/aopfw.img4 -p resources/aopfw.im4p -s resources/shsh.shsh", stdout=subprocess.PIPE, shell=True)
+        output = so.stdout.read()
+
+        so = subprocess.Popen(f"./resources/bin/img4tool -c resources/isp.img4 -p resources/isp.im4p -s resources/shsh.shsh", stdout=subprocess.PIPE, shell=True)
+        output = so.stdout.read()
+
+        so = subprocess.Popen(f"./resources/bin/img4tool -c resources/callan.img4 -p resources/callan.im4p -s resources/shsh.shsh", stdout=subprocess.PIPE, shell=True)
+        output = so.stdout.read()
+
+        so = subprocess.Popen(f"./resources/bin/img4tool -c resources/touch.img4 -p resources/touch.im4p -s resources/shsh.shsh", stdout=subprocess.PIPE, shell=True)
+        output = so.stdout.read()
 
 
 def patchFiles(iOSVersion):
@@ -106,7 +116,7 @@ def patchFiles(iOSVersion):
                 exit(2)
 
 
-def sendImages(iosVersion, useCustomLogo):
+def sendImages(iosVersion, useCustomLogo, A10A11Check):
     print("Sending boot files to the device and booting")
     if os.path.exists("resources"):
         os.chdir("resources")
@@ -128,9 +138,18 @@ def sendImages(iosVersion, useCustomLogo):
     so = subprocess.Popen(cmd, shell=True)
     time.sleep(5)
 
+    if A10A11Check:
+        cmd = "bin/irecovery -f ibec.img4"
+        so = subprocess.Popen(cmd, shell=True)
+        time.sleep(3)
+
+        cmd = "bin/irecovery -c go"
+        so = subprocess.Popen(cmd, shell=True)
+        time.sleep(6)
+
     cmd = 'bin/irecovery -c "bootx"'  # Is needed to prevent Devicetree related issues later on
     so = subprocess.Popen(cmd, shell=True)
-    time.sleep(2)
+    time.sleep(5)
 
     cmd = f"bin/irecovery -f bootlogo.img4"
     so = subprocess.Popen(cmd, shell=True)
@@ -152,15 +171,39 @@ def sendImages(iosVersion, useCustomLogo):
     so = subprocess.Popen(cmd, shell=True)
     time.sleep(2)
 
-    #if '13.' in iosVersion:  
-        
-     #   cmd = "bin/irecovery -f aopfw.img4"
-      #  so = subprocess.Popen(cmd, shell=True)
-       # time.sleep(2)
+    if A10A11Check:
+        cmd = "bin/irecovery -f aopfw.img4"
+        so = subprocess.Popen(cmd, shell=True)
+        time.sleep(2)
 
-        #cmd = 'bin/irecovery -c "firmware"'
-        #so = subprocess.Popen(cmd, shell=True)
-        #time.sleep(2)
+        cmd = "bin/irecovery -c firmware"
+        so = subprocess.Popen(cmd, shell=True)
+        time.sleep(2)
+
+        cmd = "bin/irecovery -f isp.img4"
+        so = subprocess.Popen(cmd, shell=True)
+        time.sleep(2)
+
+        cmd = "bin/irecovery -c firmware"
+        so = subprocess.Popen(cmd, shell=True)
+        time.sleep(2)
+
+        cmd = "bin/irecovery -f callan.img4"
+        so = subprocess.Popen(cmd, shell=True)
+        time.sleep(2)
+
+        cmd = "bin/irecovery -c firmware"
+        so = subprocess.Popen(cmd, shell=True)
+        time.sleep(2)
+
+        cmd = "bin/irecovery -f touch.img4"
+        so = subprocess.Popen(cmd, shell=True)
+        time.sleep(2)
+
+        cmd = "bin/irecovery -c firmware"
+        so = subprocess.Popen(cmd, shell=True)
+        time.sleep(2)
+
 
     if not '11.' in iosVersion:  # 11.x and lower don't need trustcache sent to boot =)
 
@@ -184,6 +227,11 @@ def sendImages(iosVersion, useCustomLogo):
 
 
 def img4stuff(deviceModel, iOSVersion, useCustomLogo, bootlogoPath, areWeLocal, bootOtherOS, bootArgs, amfiPatches):
+
+    if deviceModel == "iPhone10,1" or deviceModel == "iPhone10,2" or deviceModel == "iPhone10,3" or deviceModel == "iPhone10,4" or deviceModel == "iPhone10,5" or deviceModel == "iPhone10,6" or deviceModel == "iPhone9,1" or deviceModel == "iPhone9,2" or deviceModel == "iPhone9,3" or deviceModel == "iPhone9,4":
+        A10A11Check = True
+    else:
+        A10A11Check = False 
 
     api = ipswapi.APIParser(deviceModel, iOSVersion)
 
@@ -214,9 +262,8 @@ def img4stuff(deviceModel, iOSVersion, useCustomLogo, bootlogoPath, areWeLocal, 
             pwndfumodeKeys()
             needKeys = True
 
-    ipswurl = api.printURLForArchive()
-
     # geting shsh
+    modelAP = ''
     if areWeLocal == False:
         print(f"Downloading {iOSVersion}'s BuildManifest.plist")
         try:
@@ -231,46 +278,176 @@ def img4stuff(deviceModel, iOSVersion, useCustomLogo, bootlogoPath, areWeLocal, 
             sys.exit("ERROR: Couldn't find local BuildManifest")
     if needKeys:
         line_number = 0
-        count = 0
-        thing = False
+        num_lines = sum(1 for line in open('./resources/manifest.plist'))
+        save_value = False
         models = []
-        with open("./resources/manifest.plist", mode="rt") as read_plist:
-            for line in read_plist:
-                line_number += 1
-                if thing == True:
-                    deviceModel = line.rstrip()
-                    models.append(deviceModel)
-                    thing = False
-                    if count == 2:
-                        break
-                if re.search("DeviceClass", line):
-                    line_number += 1
-                    thing = True
-                    count += 1
-            read_plist.close()
 
-        choice1 = models[0]
-        choice2 = models[1]
-        choice1 = str(choice1.strip('\t\t\t'))
-        choice2 = str(choice2.strip('\t\t\t'))
-        choice1 = choice1[8:-9]
-        choice2 = choice2[8:-9]
+        with open("./resources/manifest.plist", mode="rt") as read_plist:
+
+            while line_number < num_lines:
+
+                for line in read_plist:
+                    
+                    if save_value:
+
+                        apModel = line.rstrip()
+
+                        if not apModel in models:
+
+                            models.append(apModel)
+
+                        save_value = False
+
+                    if re.search("DeviceClass", line):
+                        save_value = True
+
+                    line_number += 1
+        read_plist.close()
+
+        length = len(models) 
+        i = 0
+
+        while i < length: 
+            temp_name = models[i]
+            str(temp_name.strip('\t\t\t'))
+            temp_name = temp_name[12:-9]
+            models[i] = temp_name
+            i += 1
+
         print(f"Found multiple device models...\nWhich is your device?\n")
-        print(f"1: {choice1}\n2: {choice2}\n")
-        modelchoice = input("Enter 1 or 2: ")
-        if modelchoice == "1":
-            print(f"Device set to {choice1}")
-            iBECName = f"iBEC.{choice1[:-2]}.RELEASE.im4p"
-            iBSSName = f"iBSS.{choice1[:-2]}.RELEASE.im4p"
-        elif modelchoice == "2":
-            print(f"Device set to {choice2}")
-            iBECName = f"iBEC.{choice2[:-2]}.RELEASE.im4p"
-            iBSSName = f"iBSS.{choice2[:-2]}.RELEASE.im4p"
+        length = len(models) 
+        i = 0
+
+        while i < length:
+            print(f"{i + 1}: {models[i]}")
+            i += 1
+        modelchoice = input("\nEnter the number that corresponds with your device: ")
+        if (int(modelchoice) - 1) <= length and int(modelchoice) > 0:
+            print(f"Device set to {models[int(modelchoice) - 1]}")
+            modelAP = models[int(modelchoice) - 1]
+            ibxxName = False
+            firmwareName = []
+            line_number = 0
+            with open("./resources/manifest.plist", mode="rt") as read_plist:
+
+                while line_number < num_lines:
+
+                    for line in read_plist:
+                        
+                        if ibxxName:
+                            temp = line.rstrip()
+                            if re.search("<string>Firmware/dfu/iBEC", temp):
+                                str(temp.strip('\t\t\t'))
+                                temp = temp[27:-9]
+                                firmwareName.append(temp)
+                                line_number = num_lines + 1
+                                ibxxName = False
+                                break
+
+                        if save_value:
+
+                            apModel = line.rstrip()
+                            str(apModel.strip('\t\t\t'))
+                            apModel = apModel[12:-9]
+                            if modelAP == apModel:
+                                ibxxName = True
+                            save_value = False
+
+                        if re.search("DeviceClass", line):
+                            save_value = True
+
+                        line_number += 1
+            read_plist.close()
+            modelAP = modelAP
+            iBECName = firmwareName[0]
+            iBSSName = iBECName.replace("iBEC", "iBSS")
+            print(iBECName)
+            print(iBSSName)
         else:
-            print("Invalid input...\nExiting...")
+            print("Error: Invalid input, Exiting...")
             exit(0)
+
+    if modelAP == '':
+        line_number = 0
+        num_lines = sum(1 for line in open('./resources/manifest.plist'))
+        save_value = False
+        models = []
+
+        with open("./resources/manifest.plist", mode="rt") as read_plist:
+
+            while line_number < num_lines:
+
+                for line in read_plist:
+                    
+                    if save_value:
+
+                        apModel = line.rstrip()
+
+                        if not apModel in models:
+
+                            models.append(apModel)
+
+                        save_value = False
+
+                    if re.search("DeviceClass", line):
+                        save_value = True
+
+                    line_number += 1
+        read_plist.close()
+
+        length = len(models) 
+        i = 0
+
+        while i < length: 
+            temp_name = models[i]
+            str(temp_name.strip('\t\t\t'))
+            temp_name = temp_name[12:-9]
+            models[i] = temp_name
+            i += 1
+
+        print(f"Found multiple device models...\nWhich is your device?\n")
+        length = len(models) 
+        i = 0
+
+        while i < length:
+            print(f"{i + 1}: {models[i]}")
+            i += 1
+        modelchoice = input("\nEnter the number that corresponds with your device: ")
+        if (int(modelchoice) - 1) <= length and int(modelchoice) > 0:
+            print(f"Device set to {models[int(modelchoice) - 1]}")
+            modelAP = models[int(modelchoice) - 1]
+        else:
+            print("Error: Invalid input, Exiting...")
+            exit(0)
+
+
     print("Getting SHSH for signing images")
-    so = subprocess.Popen(f"./resources/bin/tsschecker -d iPhone6,2 -e 85888280a402e -l -s", stdout=subprocess.PIPE, shell=True)
+
+    # We need to get SHSH for A11 devices using the current device model otherwise it will not boot :/
+    if (deviceModel == "iPhone10,3"):
+        tssmodel = "iPhone10,3"
+    elif (deviceModel == "iPhone10,6"):
+        tssmodel = "iPhone10,6"
+    elif (deviceModel == "iPhone10,1"):
+        tssmodel = "iPhone10,1"
+    elif (deviceModel == "iPhone10,2"):
+        tssmodel = "iPhone10,2"
+    elif (deviceModel == "iPhone10,4"):
+        tssmodel = "iPhone10,4"
+    elif (deviceModel == "iPhone10,5"):
+        tssmodel = "iPhone10,5"
+    elif (deviceModel == "iPhone9,1"):
+        tssmodel = "iPhone9,1"
+    elif (deviceModel == "iPhone9,2"):
+        tssmodel = "iPhone9,2"
+    elif (deviceModel == "iPhone9,3"):
+        tssmodel = "iPhone9,3"
+    elif (deviceModel == "iPhone9,4"):
+        tssmodel = "iPhone9,4"
+    else:
+        tssmodel = "iPhone6,2" # iPhone6,2 seems to work for all non-A11 device, if not let me know
+
+    so = subprocess.Popen(f"./resources/bin/tsschecker -d {tssmodel} -e 85888280a402e -l -s", stdout=subprocess.PIPE, shell=True)
     output = so.stdout.read()
     dir_name = os.getcwd()
     test = os.listdir(dir_name)
@@ -340,6 +517,9 @@ def img4stuff(deviceModel, iOSVersion, useCustomLogo, bootlogoPath, areWeLocal, 
         input()
 
     patcher = "kairos" # Just allows me to change what boot image patcher I use with ease (mainly for A11 tests)
+    if (deviceModel == "iPhone10,1" or deviceModel == "iPhone10,2" or deviceModel == "iPhone10,3" or deviceModel == "iPhone10,4" or deviceModel == "iPhone10,5" or deviceModel == "iPhone10,6"):
+        patcher = "iBoot64Patcher"
+        print("A11 detected, using iBoot64Patcher...")
     so = subprocess.Popen(f"./resources/bin/img4tool -e -o resources/ibss.raw --iv {iBSSIV} --key {iBSSKey} resources/ibss.im4p", stdout=subprocess.PIPE, shell=True)
     output = so.stdout.read()    
     if useCustomLogo:
@@ -367,17 +547,27 @@ def img4stuff(deviceModel, iOSVersion, useCustomLogo, bootlogoPath, areWeLocal, 
         output = so.stdout.read()
     if bootOtherOS and "13." in iOSVersion:
         # Excuse the long byte strings, just want to be sure that we patch the correct thing :)
+
+        # This conversion from bootarg to byte was a nightware to get working -_- needed to be done though for full 13.x dualbooting support
+        # Glad its over. Basically it will take the last char from your disk0s1sX and convert it to a value that can be written to ibec 
+        length = len(bootArgs)
+        last_char = bootArgs[length -1]
+        last_char = str(int(last_char) - 1)
+        last_char = format((ord(last_char)), "x")
+
         bootpartitionString = b"\x30\x00\x2F\x53\x79\x73\x74\x65\x6D\x2F\x4C\x69\x62\x72\x61\x72\x79\x2F\x43\x61\x63\x68\x65\x73\x2F\x63\x6F\x6D\x2E\x61\x70\x70\x6C\x65\x2E\x6B\x65\x72\x6E\x65\x6C\x63\x61\x63\x68\x65\x73\x2F\x6B\x65\x72\x6E\x65\x6C\x63\x61\x63\x68\x65"
-        bootpartitionPatch = b"\x35"
+        bootpartitionPatch = bytes([int(last_char) + 18]) # Only way I found to get the users disk from a string, to an int -1, back to a string, then to hex minus the 0x,
+                                                          # then to an int then to that int + 18 to be a byte value that will actually write and work
+                                                          # This needed to be added though, as some 13.x devices will have SystemB as disk0s1s7 not always disk0s1s6 as I had hardcoded before
         if os.path.isfile("resources/ibec.pwn"):
-            print("Patching boot-partition from 0 to 5")
+            print("Patching boot-partition in iBEC")
             with open("resources/ibec.pwn", "r+b") as fh:
                 file = fh.read()
                 try:
                     offset = hex(file.index(bootpartitionString))  # getting offset for start of string
                     offset = int(offset, 16)
                     fh.seek(offset, 0)
-                    fh.write(bootpartitionPatch)  # writing 5 so we can boot the system partition
+                    fh.write(bootpartitionPatch)  # writing the disk0s1sX value to iBEC
                     fh.close()
                     print("boot-partition patch complete")
                 except:
@@ -427,21 +617,48 @@ def img4stuff(deviceModel, iOSVersion, useCustomLogo, bootlogoPath, areWeLocal, 
             print("Please either add your own image to ./resources/bootlogo.png or redownload the one that comes with PyBoot")
             exit(0)
     # iBSS/iBEC stuff is done, we now need to get devicetree, trustcache and kernel
+
     line_number = 0
+    num_lines = sum(1 for line in open('./resources/manifest.plist'))
+    kernSave = False
+    kernelname = ""
+    save_value = False
+
     with open("./resources/manifest.plist", mode="rt") as read_plist:
-        for line in read_plist:
-            line_number += 1
-            if re.search("kernelcache.release.+", line):
-                kernelname = line.rstrip()
-                read_plist.close()
-                break
-    kernelname = kernelname[14:-9]
+
+        while line_number < num_lines:
+
+            for line in read_plist:
+                
+                if kernSave:
+                    temp = line.rstrip()
+                    if re.search("<string>kernelcache.release.", temp):
+                        str(temp.strip('\t\t\t'))
+                        temp = temp[14:-9]
+                        kernelname = temp
+                        line_number = num_lines + 1
+                        kernSave = False
+                        break
+
+                if save_value:
+
+                    deviceModel = line.rstrip()
+                    str(deviceModel.strip('\t\t\t'))
+                    deviceModel = deviceModel[12:-9]
+                    if modelAP == deviceModel:
+                        kernSave = True
+                    save_value = False
+
+                if re.search("DeviceClass", line):
+                    save_value = True
+
+                line_number += 1
+    read_plist.close()
+
     if areWeLocal == False:
 
         print(f"Downloading {iOSVersion}'s KernelCache")
         try:
-            if deviceModel == "iPhone8,4":
-                kernelname = "kernelcache.release.iphone8b"
             api.downloadFileFromArchive(kernelname, "resources/kernel.im4p")
         except:
             print("ERROR: Failed to download Kernel\nPlease re-run PyBoot again and it should work (might take a few tries)")
@@ -470,15 +687,43 @@ def img4stuff(deviceModel, iOSVersion, useCustomLogo, bootlogoPath, areWeLocal, 
         else:
             print("Failed to extract raw kernel, continuing without AMFI kernel patches...")
 
-    devicetreename = f"DeviceTree.{iBSSName[5:-13]}ap.im4p"
-    if deviceModel == "iPhone6,2":
-        devicetreename = "DeviceTree.n53ap.im4p"
-    elif deviceModel == "iPhone6,1":
-        devicetreename = "DeviceTree.n51ap.im4p"
-    elif deviceModel == "iPad7,5":
-        devicetreename = "DeviceTree.j71bap.im4p"
-    elif deviceModel == "iPad7,6":
-        devicetreename = "DeviceTree.j72bap.im4p"
+    line_number = 0
+    num_lines = sum(1 for line in open('./resources/manifest.plist'))
+    dtreeSave = False
+    devicetreename = ""
+    save_value = False
+
+    with open("./resources/manifest.plist", mode="rt") as read_plist:
+
+        while line_number < num_lines:
+
+            for line in read_plist:
+                
+                if dtreeSave:
+                    temp = line.rstrip()
+                    if re.search("<string>Firmware/all_flash/DeviceTree", temp):
+                        str(temp.strip('\t\t\t'))
+                        temp = temp[33:-9]
+                        devicetreename = temp
+                        line_number = num_lines + 1
+                        dtreeSave = False
+                        break
+
+                if save_value:
+
+                    deviceModel = line.rstrip()
+                    str(deviceModel.strip('\t\t\t'))
+                    deviceModel = deviceModel[12:-9]
+                    if modelAP == deviceModel:
+                        dtreeSave = True
+                    save_value = False
+
+                if re.search("DeviceClass", line):
+                    save_value = True
+
+                line_number += 1
+    read_plist.close()
+
     if areWeLocal == False:
 
         print(f"Downloading {iOSVersion}'s DeviceTree")
@@ -495,8 +740,6 @@ def img4stuff(deviceModel, iOSVersion, useCustomLogo, bootlogoPath, areWeLocal, 
 
     if bootOtherOS and "13." in iOSVersion:
 
-        #api.downloadFileFromArchive(f"Firmware/AOP/aopfw-s8000aop.im4p", "resources/aopfw.im4p")
-
         print("Patching Devicetree to allow for new Data partition to be mounted (13.x Only)...")
         # Unpack devicetree so Ralph's patcher will work
         so = subprocess.Popen(f"./resources/bin/img4tool -e -o resources/devicetree.raw resources/devicetree.im4p", stdout=subprocess.PIPE, shell=True)
@@ -507,11 +750,52 @@ def img4stuff(deviceModel, iOSVersion, useCustomLogo, bootlogoPath, areWeLocal, 
         # Repack it to im4p
         so = subprocess.Popen(f"./resources/bin/img4tool -c resources/devicetree.im4p -t dtre resources/devicetree.patched", stdout=subprocess.PIPE, shell=True)
         output = so.stdout.read()
+
+    line_number = 0
+    num_lines = sum(1 for line in open('./resources/manifest.plist'))
+    tcachesave = False
+    trustcachename = ""
+    save_value = False
+    tcache = False
+
+    with open("./resources/manifest.plist", mode="rt") as read_plist:
+
+        while line_number < num_lines:
+
+            for line in read_plist:
+
+                if tcache:
+                    temp = line.rstrip()
+                    if re.search("<string>Firmware/", temp):
+                        str(temp.strip('\t\t\t'))
+                        temp = temp[23:-9]
+                        trustcachename = temp
+                        line_number = num_lines + 1
+                        tcache = False
+                        break
+                
+                if tcachesave:
+                    temp = line.rstrip()
+                    if re.search("<key>StaticTrustCache</key>", temp):
+                        tcachesave = False
+                        tcache = True
+
+                if save_value:
+
+                    deviceModel = line.rstrip()
+                    str(deviceModel.strip('\t\t\t'))
+                    deviceModel = deviceModel[12:-9]
+                    if modelAP == deviceModel:
+                        tcachesave = True
+                    save_value = False
+
+                if re.search("DeviceClass", line):
+                    save_value = True
+
+                line_number += 1
+    read_plist.close()
+
     if areWeLocal == False:
-        so = check_output(f"./resources/bin/pzb list {ipswurl}", shell=True)  # Need to check the downgraded IPSW to get the rootfs trustcache for booting
-        so = str(so)
-        rootfsoffset = so.find("GB") - 24  # This should always work, unless for some reason another file in the IPSW is > 1GB
-        rootfsName = so[int(rootfsoffset):-51]  # This should be the correct number to cut from, will test more
 
         if '11.' in iOSVersion:
             print("iOS version is 11.x, not downloading trustcache")
@@ -520,49 +804,214 @@ def img4stuff(deviceModel, iOSVersion, useCustomLogo, bootlogoPath, areWeLocal, 
             print("iOS version is 10.x, not downloading trustcache")
             pass
         else:
-            if rootfsName.endswith(".dmg"):
-                # just making sure string was cut correctly
-                keys["ROOTFSNAME"] = rootfsName
-                print(f"Downloading {iOSVersion}'s TrustCache")
-                try:
-                    api.downloadFileFromArchive(f'Firmware/{rootfsName}.trustcache', "resources/trustcache.im4p")
-                except:
-                    print("ERROR: Failed to download TrustCache\nPlease re-run PyBoot again and it should work (might take a few tries)")
-                    exit(2)
-                time.sleep(5)
-            else:
-                print(f"\nFailed to get RootFS name\nPlease look up the RootFS filename on the key page for {deviceModel} - iOS {iOSVersion} theiphonewiki and type it here then press enter:\n")
-                rootfsName = input()
-                if rootfsName.endswith(".dmg"):
-                    # checking again and exiting if you enter wrong because you suck
-                    keys["ROOTFSNAME"] = rootfsName
-                    api.downloadFileFromArchive(f'Firmware/{rootfsName}.trustcache', "resources/trustcache.im4p")
-                    time.sleep(5)
-                else:
-                    print("Start again from the beggining =)")
-                    exit(2)
+
+            print(f"Downloading {iOSVersion}'s TrustCache")
+            try:
+                api.downloadFileFromArchive(f'Firmware/{trustcachename}', "resources/trustcache.im4p")
+            except:
+                print("ERROR: Failed to download TrustCache\nPlease re-run PyBoot again and it should work (might take a few tries)")
+                exit(2)
+            time.sleep(5)
     else:
-        # Find largest .dmg file in IPSW/ then add .trustcache to the end of the string
         
-        objects = os.listdir("IPSW")
-
-        sofar = 0
-        name = ""
-
-        for item in objects:
-            if item.endswith(".dmg"):
-                size = os.path.getsize(f"IPSW/{item}")
-                if size > sofar:
-                        sofar = size
-                        name = item
-
-        print(f"Largest file is {name}, getting correct trustcache...")
-        trustcachename = f"{name}.trustcache"
         if os.path.exists(f"IPSW/Firmware/{trustcachename}"):
             shutil.move(f"IPSW/Firmware/{trustcachename}", "resources/trustcache.im4p")
         else:
             sys.exit("ERROR: Couldn't find local trustcache")
 
-    # Can add a verification for after the patching to make sure it was applied correctly and in the right place just in case
+    if A10A11Check:
+
+        # aopfw download 
+
+        print(f"Downloading {iOSVersion}'s AOPFW")
+
+        line_number = 0
+        num_lines = sum(1 for line in open('./resources/manifest.plist'))
+        aopfwSave = False
+        aopfwName = ""
+        save_value = False
+
+
+        with open("./resources/manifest.plist", mode="rt") as read_plist:
+
+            while line_number < num_lines:
+
+                for line in read_plist:
+                    
+                    if aopfwSave:
+                        temp = line.rstrip()
+                        if re.search("<string>Firmware/AOP/", temp):
+                            str(temp.strip('\t\t\t'))
+                            temp = temp[27:-9]
+                            aopfwName = temp
+                            line_number = num_lines + 1
+                            aopfwSave = False
+                            break
+
+                    if save_value:
+
+                        deviceModel = line.rstrip()
+                        str(deviceModel.strip('\t\t\t'))
+                        deviceModel = deviceModel[12:-9]
+                        if modelAP == deviceModel:
+                            aopfwSave = True
+                        save_value = False
+
+                    if re.search("DeviceClass", line):
+                        save_value = True
+
+                    line_number += 1
+        read_plist.close()
+
+        try:
+            api.downloadFileFromArchive(f'Firmware/AOP/{aopfwName}', "resources/aopfw.im4p")
+        except:
+            print("ERROR: Failed to download AOPFW\nPlease re-run PyBoot again and it should work (might take a few tries)")
+            exit(2)
+
+        # ISP download 
+
+        print(f"Downloading {iOSVersion}'s ISP")
+
+        line_number = 0
+        num_lines = sum(1 for line in open('./resources/manifest.plist'))
+        ispSave = False
+        ispName = ""
+        save_value = False
+
+
+        with open("./resources/manifest.plist", mode="rt") as read_plist:
+
+            while line_number < num_lines:
+
+                for line in read_plist:
+                    
+                    if ispSave:
+                        temp = line.rstrip()
+                        if re.search("<string>Firmware/isp_bni/", temp):
+                            str(temp.strip('\t\t\t'))
+                            temp = temp[31:-9]
+                            ispName = temp
+                            line_number = num_lines + 1
+                            ispSave = False
+                            break
+
+                    if save_value:
+
+                        deviceModel = line.rstrip()
+                        str(deviceModel.strip('\t\t\t'))
+                        deviceModel = deviceModel[12:-9]
+                        if modelAP == deviceModel:
+                            ispSave = True
+                        save_value = False
+
+                    if re.search("DeviceClass", line):
+                        save_value = True
+
+                    line_number += 1
+        read_plist.close()
+
+        try:
+            api.downloadFileFromArchive(f'Firmware/isp_bni/{ispName}', "resources/isp.im4p")
+        except:
+            print("ERROR: Failed to download ISP\nPlease re-run PyBoot again and it should work (might take a few tries)")
+            exit(2)
+
+        # Callan download 
+
+        print(f"Downloading {iOSVersion}'s CallanFirmware")
+
+        line_number = 0
+        num_lines = sum(1 for line in open('./resources/manifest.plist'))
+        callanSave = False
+        callanName = ""
+        save_value = False
+
+
+        with open("./resources/manifest.plist", mode="rt") as read_plist:
+
+            while line_number < num_lines:
+
+                for line in read_plist:
+                    
+                    if callanSave:
+                        temp = line.rstrip()
+                        if re.search("CallanFirmware.im4p</string>", temp):
+                            str(temp.strip('\t\t\t'))
+                            temp = temp[23:-9]
+                            callanName = temp
+                            line_number = num_lines + 1
+                            callanSave = False
+                            break
+
+                    if save_value:
+
+                        deviceModel = line.rstrip()
+                        str(deviceModel.strip('\t\t\t'))
+                        deviceModel = deviceModel[12:-9]
+                        if modelAP == deviceModel:
+                            callanSave = True
+                        save_value = False
+
+                    if re.search("DeviceClass", line):
+                        save_value = True
+
+                    line_number += 1
+        read_plist.close()
+
+        try:
+            api.downloadFileFromArchive(f'Firmware/{callanName}', "resources/callan.im4p")
+        except:
+            print("ERROR: Failed to download CallanFirmware\nPlease re-run PyBoot again and it should work (might take a few tries)")
+            exit(2)
+
+        # MultiTouch download 
+
+        print(f"Downloading {iOSVersion}'s MultiTouch Firmware")
+
+        line_number = 0
+        num_lines = sum(1 for line in open('./resources/manifest.plist'))
+        touchSave = False
+        touchName = ""
+        save_value = False
+
+
+        with open("./resources/manifest.plist", mode="rt") as read_plist:
+
+            while line_number < num_lines:
+
+                for line in read_plist:
+                    
+                    if touchSave:
+                        temp = line.rstrip()
+                        if re.search("Multitouch.im4p</string>", temp):
+                            str(temp.strip('\t\t\t'))
+                            temp = temp[23:-9]
+                            touchName = temp
+                            line_number = num_lines + 1
+                            touchSave = False
+                            break
+
+                    if save_value:
+
+                        deviceModel = line.rstrip()
+                        str(deviceModel.strip('\t\t\t'))
+                        deviceModel = deviceModel[12:-9]
+                        if modelAP == deviceModel:
+                            touchSave = True
+                        save_value = False
+
+                    if re.search("DeviceClass", line):
+                        save_value = True
+
+                    line_number += 1
+        read_plist.close()
+
+        try:
+            api.downloadFileFromArchive(f'Firmware/{touchName}', "resources/touch.im4p")
+        except:
+            print("ERROR: Failed to download MultiTouch Firmware\nPlease re-run PyBoot again and it should work (might take a few tries)")
+            exit(2)
+
     patchFiles(iOSVersion)
-    signImages()
+    signImages(A10A11Check)
