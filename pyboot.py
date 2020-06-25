@@ -86,7 +86,7 @@ def removeFiles():
             os.remove(item)
     return
 
-tool_version = '\033[92m' + "Beta 0.7" + '\033[0m'
+tool_version = '\033[92m' + "Beta 0.8" + '\033[0m'
 
 
 def main():
@@ -470,15 +470,6 @@ def main():
                 bootArgs = input("Please enter the boot-args you want to use then press enter: ")
             else:
                 bootArgs = "-v"
-
-        if "10." in (str(args.ios))[2:-2]:
-            print("\nWARNING - 10.x Currently WILL NOT BOOT. You can try if you want to but expect it not to boot!\nPress enter to continue or type anything else and press enter to exit")
-            choice = input("")
-            if choice == "":
-                pass
-            else:
-                print("Exiting...")
-                exit(2)
 
         print("Make sure your device is connected in DFU mode")
         time.sleep(5)
