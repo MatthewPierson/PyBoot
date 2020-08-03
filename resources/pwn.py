@@ -1,8 +1,12 @@
 import os
 import subprocess
 import time
+import shutil
+import requests
 import re
+import stat
 
+from zipfile import ZipFile, is_zipfile
 from resources.ipwndfu import checkm8, dfu, usbexec
 
 def decryptKBAG(kbag: str):
@@ -167,16 +171,63 @@ def pwndfumode():
             input()
             pwndfumode()
     elif "CPID:8010" in serial_number:
+
+        # I don't want to bundle Fugu just to make sure that people know it hasnt been modified 
+        # I'd rather just quickly download the binary from Linus's github if it hasnt been already to avoid any issues
+
+        if os.path.exists("resources/Fugu_8010/Fugu"):
+            pass
+        else:
+            os.mkdir("resources/Fugu_8010")
+
+            print("Downloading latest Fugu release from LinusHenze's github...")
+                
+            if os.path.exists("fugu.zip"):
+                os.remove("fugu.zip")
+
+            url = "https://github.com/LinusHenze/Fugu/releases/download/v0.4/Fugu_v0.4.zip"
+            r = requests.get(url, allow_redirects=True)
+
+            open('fugu.zip', 'wb').write(r.content)
+
+            if os.path.exists("fugu"):
+                shutil.rmtree("fugu")
+                os.mkdir("fugu")
+            else:
+                os.mkdir("fugu")
+            
+            shutil.move("fugu.zip", "fugu/fugu.zip")
+            os.chdir("fugu")
+
+            with ZipFile('fugu.zip', 'r') as zipObj:
+                
+                zipObj.extractall()
+            
+            os.chdir("../")
+
+            shutil.move("fugu/fugu", "resources/Fugu_8010/Fugu")
+            shutil.move("fugu/shellcode", "resources/Fugu_8010/shellcode")
+
+            st = os.stat('resources/Fugu_8010/Fugu')
+            os.chmod('resources/Fugu_8010/Fugu', st.st_mode | stat.S_IEXEC)
+
+            shutil.rmtree("fugu")
+
+            print("Fugu has now been installed!")
+
         if "PWND:[checkm8]" in serial_number:
             print("Device already in PWNDFU mode, not re-running exploit..")
             return
         else:
-            if not os.path.exists("checkm8.py"):
-                os.chdir("resources/ipwndfu8010")
-            cmd = './ipwndfu -p'
+            if not os.path.exists("Fugu"):
+                os.chdir("resources/Fugu_8010")
+            cmd = './Fugu rmsigchks'
             so = os.popen(cmd).read()
-            print(so)
-            if "ERROR: No Apple device" in so:
+            #print(so)
+            if "Exploiting iDevice: FAILED!" in so:
+                print("Exploit failed, however re-expoilting without rebooting might work. Attempting now...")
+                pwndfumode()
+            if "Device could not be found!" in so:
                 print("Exploit failed, reboot device into DFU mode and press enter to re-run checkm8")
                 input()
                 pwndfumode()
@@ -186,9 +237,6 @@ def pwndfumode():
             dfu.release_device(device)
             if "PWND:[checkm8]" in serial_number:
                 print("Exploit worked!")
-                cmd = 'python2.7 rmsigchks.py'
-                so = subprocess.Popen(cmd, shell=True)
-                print(so)
                 os.chdir("../..")
                 time.sleep(5)
                 return
