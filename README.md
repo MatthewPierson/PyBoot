@@ -89,7 +89,7 @@ Options:
 
 [Thimstar](https://twitter.com/tihmstar) - [img4tool](https://github.com/tihmstar/img4tool), [tsschecker](https://github.com/tihmstar/tsschecker), [iBoot64Patcher](https://github.com/tihmstar/iBoot64Patcher)
 
-[Linus Henze](https://twitter.com/LinusHenze) - [sigcheckremover](https://github.com/LinusHenze/ipwndfu_public)
+[Linus Henze](https://twitter.com/LinusHenze) - [Fugu](https://github.com/LinusHenze/Fugu)
 
 [akayn](https://twitter.com/_akayn) - [A11 sigcheckremover support](https://github.com/akayn/ipwndfu)
 
@@ -108,3 +108,5 @@ libimobiledevice team - [irecovery](https://github.com/libimobiledevice/libireco
 [Ralph0045](https://twitter.com/Ralph0045) - [dtree_patcher](https://github.com/Ralph0045/dtree_patcher)/[Kernel64Patcher](https://github.com/Ralph0045/Kernel64Patcher)
 
 [mcg29_](https://twitter.com/mcg29_) - amfi patching stuff
+
+[dora2ios](https://twitter.com/dora2ios) - [pwnedDFU (A7 checkm8)](https://github.com/dora2-iOS/iPwnder32/releases/tag/1.1)

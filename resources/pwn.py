@@ -143,19 +143,21 @@ def pwndfumode():
     dfu.release_device(device)
 
     if "CPID:8960" in serial_number:
-        if not os.path.exists("checkm8.py"):
-            os.chdir("resources/ipwndfu")
-        runexploit = checkm8.exploit()
-        if runexploit:
+        if not os.path.exists("pwnedDFU"):
+            os.chdir("resources/bin")
+        cmd = './pwnedDFU -p -f'
+        so = os.popen(cmd).read()
+        
+        if "Device is now in pwned DFU mode!" in so:
             print("Exploit worked!")
-            cmd = 'python2.7 rmsigchks.py'
-            so = os.popen(cmd).read()
-            print(so)
             os.chdir("../..")
+            return
         else:
             print("Exploit failed, reboot device into DFU mode and press enter to re-run checkm8")
             input()
+            os.chdir("../..")
             pwndfumode()
+
     elif "CPID:8965" in serial_number:
         if not os.path.exists("checkm8.py"):
             os.chdir("resources/ipwndfu")

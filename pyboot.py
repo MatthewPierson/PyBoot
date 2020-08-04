@@ -86,7 +86,7 @@ def removeFiles():
             os.remove(item)
     return
 
-tool_version = '\033[92m' + "Beta 0.9" + '\033[0m'
+tool_version = '\033[92m' + "Beta 0.9.1" + '\033[0m'
 
 
 def main():
