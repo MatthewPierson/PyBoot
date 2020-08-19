@@ -11,32 +11,6 @@ import requests
 
 from resources.iospythontools import iphonewiki, ipswapi, utils
 
-def patchThing():
-    #Copyright (c) 2020, @mcg29_
-
-    # Code used with permission from @mcg29_
-    # Original code from: https://github.com/dualbootfun/dualbootfun.github.io/blob/master/source/compareFiles.py
-
-	patched = open("resources/kernel.patched", "rb").read()
-	original = open("resources/kernel.raw", "rb").read()
-	lenP = len(patched)
-	lenO = len(original)
-	if lenP != lenO:
-		print("size does not match, can't compare files! exiting...")
-		sys.exit(1)
-	diff = []
-	for i in range(lenO):
-		originalByte = original[i]
-		patchedByte = patched[i]
-		if originalByte != patchedByte:
-			diff.append([hex(i),hex(originalByte), hex(patchedByte)])	
-	diffFile = open('resources/kc.bpatch', 'w+')
-	diffFile.write('#AMFI\n\n')
-	for d in diff:
-		data = str(d[0]) + " " + (str(d[1])) + " " + (str(d[2]))
-		diffFile.write(data+ '\n')
-		print(data)
-
 def signImages(A10A11Check):
     print("Signing boot files")
 
@@ -670,18 +644,19 @@ def img4stuff(deviceModel, iOSVersion, useCustomLogo, bootlogoPath, areWeLocal, 
             sys.exit("ERROR: Couldn't find local kernelcache")
     if amfiPatches:
         print("Applying AMFI patches to kernel (Thanks to Ralph and mcg29_)")
-        so = subprocess.Popen(f"./resources/bin/img4 -i resources/kernel.im4p -o resources/kernel.raw", stdout=subprocess.PIPE, shell=True)
+        so = subprocess.Popen(f"./resources/bin/img4tool -e -o resources/kernel.raw resources/kernel.im4p", stdout=subprocess.PIPE, shell=True)
         output = so.stdout.read()
         time.sleep(5)
         if os.path.exists("resources/kernel.raw"):
             print("Saved raw kernel to 'resources/kernel.raw'")
             so = subprocess.Popen(f"./resources/bin/Kernel64Patcher resources/kernel.raw resources/kernel.patched -a", stdout=subprocess.PIPE, shell=True)
             output = so.stdout.read()
-            patchThing()
             so = subprocess.Popen(f"./resources/bin/img4tool -e -s resources/shsh.shsh -m resources/IM4M", stdout=subprocess.PIPE, shell=True)
             output = so.stdout.read()
             print("Patched AMFI from kernel")
-            so = subprocess.Popen(f"./resources/bin/img4 -i resources/kernel.im4p -o resources/kernel.img4 -M resources/IM4M -T krnl -P resources/kc.bpatch", stdout=subprocess.PIPE, shell=True)
+            so = subprocess.Popen(f"./resources/bin/img4tool -c resources/kernel.im4p -t rkrn resources/kcache.patched --compression bvx2", stdout=subprocess.PIPE, shell=True)
+            output = so.stdout.read()
+            so = subprocess.Popen(f"./resources/bin/img4tool -c kernel.img4 -p kernel.im4p -m resources/IM4M", stdout=subprocess.PIPE, shell=True)
             output = so.stdout.read()
             print("Finished patching kernel!\nContinuing with PyBoot...\n")
         else:

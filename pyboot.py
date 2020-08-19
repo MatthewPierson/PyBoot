@@ -131,7 +131,7 @@ def main():
             if os.path.exists("img4tool.zip"):
                 os.remove("img4tool.zip")
 
-            url = "https://github.com/tihmstar/img4tool/releases/download/182/buildroot_macos-latest.zip"
+            url = "https://github.com/tihmstar/img4tool/releases/download/192/buildroot_macos-latest.zip"
             r = requests.get(url, allow_redirects=True)
 
             open('img4tool.zip', 'wb').write(r.content)
@@ -245,7 +245,7 @@ def main():
             if os.path.exists("img4tool.zip"):
                 os.remove("img4tool.zip")
 
-            url = "https://github.com/tihmstar/img4tool/releases/download/182/buildroot_macos-latest.zip"
+            url = "https://github.com/tihmstar/img4tool/releases/download/192/buildroot_macos-latest.zip"
             r = requests.get(url, allow_redirects=True)
 
             open('img4tool.zip', 'wb').write(r.content)
