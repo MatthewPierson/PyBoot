@@ -143,9 +143,9 @@ def pwndfumode():
     dfu.release_device(device)
 
     if "CPID:8960" in serial_number:
-        if not os.path.exists("pwnedDFU"):
+        if not os.path.exists("iPwnder32"):
             os.chdir("resources/bin")
-        cmd = './pwnedDFU -p -f'
+        cmd = './iPwnder32 -p'
         so = os.popen(cmd).read()
         
         if "Device is now in pwned DFU mode!" in so:
