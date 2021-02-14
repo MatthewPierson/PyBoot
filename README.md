@@ -109,4 +109,4 @@ libimobiledevice team - [irecovery](https://github.com/libimobiledevice/libireco
 
 [mcg29_](https://twitter.com/mcg29_) - amfi patching stuff
 
-[dora2ios](https://twitter.com/dora2ios) - [pwnedDFU (A7 checkm8)](https://github.com/dora2-iOS/iPwnder32/releases/tag/1.1)
+[dora2ios](https://twitter.com/dora2ios) - [iPwnder32 (A7 checkm8)](https://github.com/dora2-iOS/iPwnder32)
