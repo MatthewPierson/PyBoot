@@ -1,5 +1,5 @@
 # PyBoot
-Script for tether booting Checkm8 vulnerable iOS devices by Matty [(moski)](https://twitter.com/mosk_i)
+Script for tether booting Checkm8 vulnerable iOS devices by Matty [(moski)](https://twitter.com/moski_dev)
 
 ## DISCLAIMER
 
@@ -83,7 +83,7 @@ Options:
 
 ## Credits
 
-[Me](https://twitter.com/mosk_i) - For writing this whole thing :)
+[Me](https://twitter.com/moski_dev) - For writing this whole thing :)
 
 [axi0mX](https://twitter.com/axi0mX) - [ipwndfu/checkm8](https://github.com/axi0mX/ipwndfu)
 
