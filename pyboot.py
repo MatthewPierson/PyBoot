@@ -2,6 +2,7 @@
 
 import subprocess
 from subprocess import check_output
+from system import os
 import sys
 
 try:
@@ -23,23 +24,8 @@ try:
 except:
     print("Failed to import dependencies, running pip to install them...")
     subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"])
-    try:
-        import argparse
-        import os
-        import platform
-        import plistlib
-        import re
-        import shutil
-        import time
-        from subprocess import check_output
-        from argparse import RawTextHelpFormatter
-        from resources import img4, pwn, ipsw
-        from resources.iospythontools import iphonewiki, ipswapi, utils
-        
-    except:
-        print("\n\nFailed to install dependencies, please manually run 'pip3 install -r requirements.txt' then re-run PyBoot") # Simplest way to make sure the user knows what to do if they haven't installed dependencies yet
-        exit(0)
-    print("\n\nSuccessfully installed dependencies!\n\nContinuing with PyBoot...\n")
+    
+    os("python3 pyboot.py")
 
 
 def removeFiles():
