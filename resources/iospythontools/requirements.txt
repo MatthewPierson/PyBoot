@@ -19,5 +19,5 @@ six==1.13.0
 soupsieve==1.9.5
 tabulate==0.8.6
 typed-ast==1.4.0
-urllib3==1.25.7
+urllib3==1.26.5
 wrapt==1.11.2
