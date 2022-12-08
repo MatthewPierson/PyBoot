@@ -2,7 +2,7 @@ astroid==2.3.3
 autopep8==1.4.4
 beautifulsoup4==4.8.1
 bs4==0.0.1
-certifi==2019.11.28
+certifi==2022.12.7
 chardet==3.0.4
 device-detector==0.9
 idna==2.8
